@@ -1,0 +1,13 @@
+
+/backend/comApp/migrations
+/backend/planApp/migrations
+/backend/monApp/migrations
+/backend/reportApp/migrations
+/backend/roleApp/migrations
+/backend/userApp/migrations
+/backend/venv/
+/backend/data.json
+/backend/db.sqlite3
+/frontend/node_modules
+
+

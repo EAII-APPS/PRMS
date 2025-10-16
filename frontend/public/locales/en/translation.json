@@ -1,0 +1,330 @@
+{
+  "LOGINPAGE": {
+    "LOGINPAGE": "PLAN AND REPORT MONITORING SYSTEM(PRMS)",
+    "LOGIN": "Login",
+    "EMAIL": "Email",
+    "PASSWORD": "Password",
+    "FORGETPASSWORD": "Forget Password?",
+    "SIGNIN": "Sign in to your account"
+  },
+  "MAIN": {
+ 
+    "TITLE": "PRMS",
+    "PROFILE": {
+      "MYPROFILE": "My Profile",
+      "SETTING": "Setting",
+      "CHANGE_PASSWORD": "Change Password",
+      "SIGNOUT": "Sign Out"
+    },
+    "CHAT": {
+      "CHAT": "Chats"
+    },
+    "SIDEBAR": {
+      "DASHBOARD": "Dashborad",
+      "UMS": {
+        "UMS": "User Management",
+        "USER": {
+          "USER": "User",
+          "TITLE": "List of Users",
+          "ADDBUTTON": "Add User"
+        },
+        "ADMIN": {
+          "ADMIN": "Admin",
+          "TITLE": "List of Admins",
+          "ADDBUTTON": "Add Admin"
+        }
+      },
+      "ROLE": {
+        "ROLEPERMISSSION": "Role Permission",
+        "ROLE": "Role",
+        "TITLE": "List of Roles",
+        "ADDBUTTON": "Create New Role"
+      },
+      "PLAN": {
+        "PLAN": "Plan",
+        "STRATEGIC_GOAL": {
+          "STRATEGIC_GOAL": "Strategic Goal",
+          "TITLE": "Strategic Goal",
+          "ADDBUTTON": "Add Strategic Goal"
+        },
+        "MAIN_GOAL": {
+          "MAIN_GOAL": "Main Goal",
+          "TITLE": "List of Main Goal",
+          "ADDBUTTON": "Add Main Goal"
+        },
+        "PLAN_SUMMARY": {
+          "PLAN_SUMMARY": "Plan Summary",
+          "SUMMARY":"Summary",
+          "ADD_SUMMARY": "Add Summary",
+          "MERGE_SELECTED":"Merge Documents",
+          "SELECT":"Select",
+          "NO":"No",
+          "TITLE":"Title",
+          "YEAR":"Year",
+          "QUARTER":"Quarter",
+          "APPROVE":"Approve",
+          "OWNER" : "User type",
+          "SUBMIT":"Submit",
+          "ACTION":"Action"
+        },
+        "KPI": {
+          "KPI": "Annual KPI",
+          "TITLE": "List of Annual KPI",
+          "ADDBUTTON": "Add Annual Kpi"
+        },
+        "KPI3": {
+          "KPI": "Three Year KPI",
+          "TITLE": "List of Three Year KPI",
+          "ADDBUTTON": "Add Kpi",
+          "STARTYEAR": "Start Year",
+          "ENDYEAR": "End Year",
+          "MEASURE": "Measure",
+          "TOTAL": "Total Plan"
+        },
+        "KPIALL": {
+          "KPI": "KPI",
+          "TITLE": "List of All KPI",
+          "ADDBUTTON": "Add Kpi"
+        },
+        "GENERATE_PLAN_TABLE": {
+          "GENERATE_PLAN_TABLE": "Generate plan table",
+          "GENERATE_THREE_YEAR_PLAN_TABLE":"Generate three year plan table",
+          "TITLE": "Goals and Action Plan for the Fiscal Year",
+          "TITLETHREEYEAR": "Goals for three year",
+          "TITLETHREEYEARREPORT": "Report table for three year"
+        },
+        "GENERATE_FINAL_PLAN": {
+          "GENERATE_FINAL_PLAN": "Generate final plan"
+        }
+      },
+      "REPORT": {
+        "REPORT": "Report",
+        "GENERATE": "Generate",
+        "COMMENT":"Comment",
+        "COMMENT_SECTION":"Comment Section",
+        "FINAL_DOCUMENT": "Final Document Generation",
+        "DOWNLOAD": "Download",
+        "KPI_DESCRIPTION": {
+          "KPI_DESCRIPTION": "Kpi Description",
+          "TITLE": "List of KPI Description",
+          "ADDBUTTON": "Add KPI Description"
+        },
+        "SUMMARY": {
+          "SUMMARY": "Report Summary",
+          "TITLE": "Summary",
+          "ADDBUTTON": "Add Summary"
+        },
+        
+        "MEASURE": {
+          "MEASURE": "Measure",
+          "TITLE": "Measure",
+          "ADDBUTTON": "Add Measure"
+        },
+        "GENERATE_THREE_YEAR_REPORT_TABLE": {
+          "GENERATE_REPORT_TABLE": "Generate Three Year Report Table",
+          "TITLE": "List of Report Table",
+          "ADDBUTTON": ""
+        },
+        "GENERATE_REPORT_TABLE": {
+          "GENERATE_REPORT_TABLE": "Generate report Table",
+          "TITLE": "List of Report Table",
+          "ADDBUTTON": ""
+        },
+        "GENERATE_FINAL_REPORT": {
+          "GENERATE_FINAL_REPORT": "Generate final report",
+          "TITLE": "List of final Report",
+          "ADDBUTTON": ""
+        },
+        "PERFORMANCE": {
+          "PERFORMANCE": "Performance",
+          "TITLE": "List of final Report",
+          "ADDBUTTON": ""
+        }
+      },
+    "MEASUREMENTMANAGEMENT": {
+        "MEASUREMENTMANAGEMENT": "Measurement ",
+        "MEASUREMENT": {
+          "MEASUREMENT": "Measure",
+          "TITLE": "Measure",
+          "ADDBUTTON": "Add Measure"
+        },
+        "UNITE": {
+          "UNITE": "Unit",
+          "TITLE": "Unit",
+          "ADDBUTTON": "Add Unit"
+        }
+      },
+      "TRACKING": {
+        "TRACKING": "Tracking",
+        "SECTOR": {
+          "SECTOR": "Sector",
+          "TITLE": "",
+          "ADDBUTTON": ""
+        },
+        "DIVISION": {
+          "DIVISION": "Division",
+          "TITLE": "",
+          "ADDBUTTON": ""
+        },
+        "TEAM": {
+          "TEAM": "Team",
+          "TITLE": "",
+          "ADDBUTTON": ""
+        }
+      },
+
+      "CLUSTER": {
+        "CLUSTER": "Cluster",
+        "MONITORING": {
+          "MONITORING": "Monitoring",
+          "TITLE": "Monitoring",
+          "ADDBUTTON": "Add Monitoring"
+        },
+        "SECTOR": {
+          "SECTOR": "Sector",
+          "TITLE": "",
+          "ADDBUTTON": "Add Sector"
+        },
+        "DIVISION": {
+          "DIVISION": "Division",
+          "TITLE": "Division",
+          "ADDBUTTON": "Add Division"
+        }
+      }
+      
+    },
+    "TABLE": {
+      "DOWNLOAD":"Download",
+      "NO": "No",
+      "NAME": "Name",
+      "EMAIL": "Email",
+      "ROLE": "Role",
+      "STATUS": "Status",
+      "PHONENUMBER": "Phone Number",
+      "TYPE": "Type",
+      "INITIAL": "Initial",
+      "CLUSTER": "Generate Final Plan",
+      "SEARCH": "Search",
+      "ACTION": "Action",
+      "PREVIOUS": "Previous",
+      "NEXT": "Next",
+      "WEIGHT": "Weight",
+      "MEASURE": "Measure",
+      "STRATEGIC_GOAL_MAIN_GOAL_AND_KPI": "Strategic goals, major activities and detailed key performance indicators",
+      "LAST_YEAR_PERFORMANCE": "Performance of {{lastYear}} (Initial)",
+      "NEXT_YEAR_GOAL": "{{thisYear}} Goal (Annual)",
+      "FIRST_QUARTER": "1st Quarter",
+      "SECOND_QUARTER": "2nd Quarter",
+      "THIRD_QUARTER": "3rd Quarter",
+      "FOURTH_QUARTER": "4th Quarter",
+      "SIX_MONTH": "6th Month",
+      "NINE_MONTH": "9th Month",
+      "FINAL_YEAR": "year",
+      "YEARTHREE_VALUES":"Yearly {{year_one}} - {{year_three}} plan",
+      "REPORT_TITLE": "Performance of the main goals of the sector",
+      "REPORT_OF_LAST_YEAR": "Utill {{reportLastYear}} performance (Initial)",
+      "REPORT_OF_THIS_YEAR": "{{reportThisYear}} fiscal year quarter performance",
+      "REPORT_PERFORMANCE": "performance ",
+      "REPORT_GOAL": "Goal",
+      "REPORT_PERFORMANCE_IN_PERCENT": "performance in percent",
+      "USERTYPE": "User type",
+      "YEAR": "Year",
+      "SELECT_YEAR": "Select year",
+      "SELECT_START_YEAR": "Select Start Year",
+      "QUARTER": "Quarter",
+      "SELECT_QUARTER": "Select Quarter",
+      "SECTOR": "Sector",
+      "SELECT_SECTOR": "Select Sector",
+      "DIVISION": "Division",
+      "SELECT_DIVISION": "Select Division",
+      "DESCRIPTION": "kpi Description",
+      "FILTER": "Filter",
+      "CLEAR" : "Clear",
+      "TOTAL": "Total"
+    },
+    "FOOTER": {
+      "DATE": "{{year}} © EAII",
+      "COPYRIGHT": "Designed & Developed by EAII"
+    },
+    "INPUTFIELD": {
+      "ADDNEWUSER": "Add New User",
+      "ADMIN": "Admin",
+      "USER": "User",
+      "ADD_USER": "Add User",
+      "ADD_ADMIN": "Add Admin",
+      "FIRSTNAME": "First Name",
+      "LASTNAME": "Last Name",
+      "EMAIL": "Email",
+      "PHONENUMBER": "Mobile Number",
+      "GENDER": "Gender",
+      "ROLE": "Role",
+      "NEWROLE": "New Role",
+      "STRATEGIC_GOAL": "Strategic Goal",
+      "YEAR": "Year",
+      "WEIGHT": "Weight",
+      "ADD_STRATEGIC_GOAL": "Add Strategic Goal",
+      "ASSIGN_STRATEGIC_GOAL": "Assign Strategic Goal",
+      "ASSIGN_MAIN_GOAL": "Assign Main Goal",
+      "ASSIGN": "Assign Kpis",
+      "UPDATE_STRATEGIC_GOAL": "Update Strategic Goal",
+      "UPDATE": "Update",
+      "MAIN_GOAL": "Main Goal",
+      "ADD_MAIN_GOAL": "Add Main Goal",
+      "UPDATE_MAIN_GOAL": "Update Main Goal",
+      "ADD_NEW_MAIN_GOAL": "Add New MainGoal",
+      "ADD_NEW_KPI": "Add New Kpi",
+      "ADD_KPI": "Add Kpi",
+      "ADD_KPI3":"Add Kpi",
+      "INITIAL": "Initial",
+      "MEASURE": "Measure",
+      "KPI": "Kpi",
+      "ANNUAL":"Annual Plan",
+      "TOTAL": "Total Plan",
+      "FIRST_QUARTER": "1st Quarter",
+      "SECOND_QUARTER": "2nd Quarter",
+      "THIRD_QUARTER": "3rd Quarter",
+      "FOURTH_QUARTER": "4th Quarter",
+      "FIRST_YEAR_PLAN": "1st Year Plan",
+      "SECOND_YEAR_PLAN": "2nd Year Plan",
+      "THIRD_YEAR_PLAN": "3rd Year Plan",
+      "UPDATE_KPI": "Update Kpi",
+      "ADD_NEW_MEASURE": "Add New Measure",
+      "ADD_MEASURE": "Add Measure",
+      "TYPE": "Type",
+      "UPDATE_MEASURE": "Update Measure",
+      "ADD_PERFORMANCE": "Add Performance",
+      "FIRST_QUARTER_PERFORMANCE": "1st Quarter Performance",
+      "SECOND_QUARTER_PERFORMANCE": "2nd Quarter Performance",
+      "THIRD_QUARTER_PERFORMANCE": "3rd Quarter Performance",
+      "FOURTH_QUARTER_PERFORMANCE": "4th Quarter Performance",
+      "ADD_MONITORING": "Add Monitoring",
+      "MONITORING": "Monitoring",
+      "UPDATE_MONITORING": "Update Monitoring",
+      "ADD_SECTOR": "Add Sector",
+      "SECTOR": "Sector",
+      "SELECT_SECTOR": "Select Sector",
+      "SELECT_DIVISION": "Select Division",
+      "UPDATE_SECTOR": "Update Sector",
+      "ADD_DIVISION": "Add Division",
+      "DIVISION": "Division",
+      "UPDATE_DIVISION": "Update Division",
+      "CANCEL": "Cancel",
+      "DELETE": "Are you sure you want to delete?",
+      "NO": "No",
+      "YES": "Yes",
+      "MALE": "Male",
+      "FEMALE": "Female",
+      "OLD_PASSWORD": "Old Password",
+      "NEW_PASSWORD": "New Password",
+      "CONFIRM_PASSWORD": "Confirm Password",
+      "IMPORT_XML": "Import xml file",
+      "UNITE": "Unit Name",
+      "ADD_UNITE": "Add Unit",
+      "UPDATE_UNITE": "Update Unit",
+      "SYMBOL": "Symbol",
+      "CONVERSION_FACTOR": "conversion Factor",
+      "IS_BASE_UNITE": "Is Base Unit",
+      "UNIT" : "Select Unit"
+    }
+  }
+}

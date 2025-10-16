@@ -1,0 +1,25 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "new",
+            "group": "new",
+            "database": "${workspaceFolder:plan_and_report_monitoring}/backend/db.sqlite3"
+        },
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "new2",
+            "group": "new2",
+            "database": "C:\\Users\\NATTY\\Downloads\\db (1).sqlite3"
+        },
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "lastcon",
+            "database": "${workspaceFolder:plan_and_report_monitoring}/backend/db.sqlite3"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

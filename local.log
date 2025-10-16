@@ -1,0 +1,14 @@
+
+
+(Not all processes could be identified, non-owned process info
+ will not be shown, you would have to be root to see it all.)
+Mon Oct 06 2025 09:55:48:365 GMT+0300 (EAT) -- [ERROR] Another instance of BrowserStack Binary is running with on your system with PID: 8508
+Mon Oct 06 2025 09:55:48:366 GMT+0300 (EAT) -- [ERROR] Please close it and try again
+Mon Oct 06 2025 09:55:48:366 GMT+0300 (EAT) -- [ERROR] SYS_CONFLICT:1001 https://browserstack.com/docs/local-testing/binary/errors/1001
+Mon Oct 06 2025 09:55:48:370 GMT+0300 (EAT) -- You can learn more about BrowserStack Binary flags by running ./BrowserStackLocal --help
+Mon Oct 06 2025 10:33:33:620 GMT+0300 (EAT) --  *** Error: The connection to BrowserStack failed 10 attempts. Please try again.
+
+You need to allow outbound traffic for *.browserstack.com in your corporate firewall to setup local testing.
+For any other problem please contact support@browserstack.com.
+
+Mon Oct 06 2025 10:33:33:620 GMT+0300 (EAT) -- You can learn more about BrowserStack Binary flags by running ./BrowserStackLocal --help

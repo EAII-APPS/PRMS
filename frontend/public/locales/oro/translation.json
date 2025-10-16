@@ -1,0 +1,263 @@
+{
+    "LOGINPAGE": {
+      "LOGINPAGE": "SIRNA HORDOFFII KAROORAA FI GABAASAA (SHKG)",
+      "LOGIN": "Seni",
+      "EMAIL": "Imeelii",
+      "PASSWORD": "Jecha icciitii",
+      "FORGETPASSWORD": "Lakkoofsa Icciitii Keessan dagattanii?",
+      "SIGNIN": "Garaa akkawuntii keessanitti seenaa"
+    },
+    "MAIN": {
+      "TITLE": "SHKG",
+      "PROFILE": {
+        "MYPROFILE": "Profaayila koo",
+        "SETTING": "Haala",
+        "CHANGE_PASSWORD": "Jecha icciitii jijjiiri",
+        "SIGNOUT": "Cufaatii ba'aa"
+      },
+      "CHAT": {
+        "CHAT": "Chaatiiwwan"
+      },
+      "SIDEBAR": {
+        "DASHBOARD": "Daashboordii",
+        "UMS": {
+          "UMS": "Bulchiinsa Fayyadamtootaa",
+          "USER": {
+            "USER": "Fayyadamaa",
+            "TITLE": "Tarree Fayyadamtootaa",
+            "ADDBUTTON": "Fayyadamaa Dabaluu"
+          },
+          "ADMIN": {
+            "ADMIN": "Bulchaa",
+            "TITLE": "Tarree hoggantootaa",
+            "ADDBUTTON": "Hoggana itti Dabaluu"
+          }
+        },
+        "ROLE": {
+          "ROLEPERMISSSION": "Hayyama gahee hojii",
+          "ROLE": "Ga'ee",
+          "TITLE": "Tarree Gahee Hojii",
+          "ADDBUTTON": "Gahee Haaraa Uumuu"
+        },
+        "PLAN": {
+          "PLAN": "Karoora",
+          "STRATEGIC_GOAL": {
+            "STRATEGIC_GOAL": "Galma tarsiimoo",
+            "TITLE": "Galma tarsiimoo",
+            "ADDBUTTON": "Galma Tarsiimoo Dabaluu"
+          },
+          "MAIN_GOAL": {
+            "MAIN_GOAL": "Galma ijoo",
+            "TITLE": "Tarree Galma ijoo",
+            "ADDBUTTON": "Galma ijoo Dabaluu"
+          },
+          "PLAN_SUMMARY": {
+            "PLAN_SUMMARY": "Cuunfaa Karoora"
+          },
+          "KPI": {
+            "KPI": "Agarsiiftuu raawwii hojii ijoo",
+            "TITLE": "Ibsa agarsiiftuu raawwii hojii ijoo",
+            "ADDBUTTON": "Kpi dabaluu"
+          },
+          "GENERATE_PLAN_TABLE": {
+            "GENERATE_PLAN_TABLE": "Gabatee Karoora Maddisiisuu",
+            "TITLE": "Galmaa fi Karoora Hojii Bara Baajataa"
+          },
+          "GENERATE_FINAL_PLAN": {
+            "GENERATE_FINAL_PLAN": "Karoora dhumaa maddisiisuu"
+          }
+        },
+        "REPORT": {
+          "REPORT": "Gabaasuu",
+          "GENERATE": "Maddisiisuu",
+          "COMMENT": "Yaada kennuu",
+          "COMMENT_SECTION": "Kutaa Yaada",
+          "FINAL_DOCUMENT": "Galmee dhumaa agarsiisi",
+          "DOWNLOAD": "Buusuu",
+          "KPI_DESCRIPTION": {
+            "KPI_DESCRIPTION": "Ibsa Kpi",
+            "TITLE": "Tarree Ibsa KPI",
+            "ADDBUTTON": "Ibsa KPI Dabaluu"
+          },
+          "SUMMARY": {
+            "SUMMARY": "Cuunfaa Gabaasaa",
+            "TITLE": "Cuunfaa",
+            "ADDBUTTON": "Cuunfaa Dabaluu"
+          },
+          "MEASURE": {
+            "MEASURE": "Safaruu",
+            "TITLE": "Safaruu",
+            "ADDBUTTON": "Safartuu Dabaluu"
+          },
+          "GENERATE_REPORT_TABLE": {
+            "GENERATE_REPORT_TABLE": "Sagantaa agarsiisi",
+            "TITLE": "Tarree Gabatee Sagantaa",
+            "ADDBUTTON": ""
+          },
+          "GENERATE_FINAL_REPORT": {
+            "GENERATE_FINAL_REPORT": "Karoora dhumaa agarsiisi",
+            "TITLE": "Tarree Karoora dhumaa",
+            "ADDBUTTON": ""
+          },
+          "PERFORMANCE": {
+            "PERFORMANCE": "Ga'umsa",
+            "TITLE": "Tarree Karoora dhumaa",
+            "ADDBUTTON": ""
+          }
+        },
+  
+        "TRACKING": {
+          "TRACKING": "Hordoffii",
+          "SECTOR": {
+            "SECTOR": "Kutaa Magaalaa",
+            "TITLE": "",
+            "ADDBUTTON": ""
+          },
+          "DIVISION": {
+            "DIVISION": "Aanaa",
+            "TITLE": "",
+            "ADDBUTTON": ""
+          },
+          "TEAM": {
+            "TEAM": "garee",
+            "TITLE": "",
+            "ADDBUTTON": ""
+          }
+        },
+  
+        "CLUSTER": {
+          "CLUSTER": "Kutaa hojii",
+          "MONITORING": {
+            "MONITORING": "To'ataa",
+            "TITLE": "To'ataa",
+            "ADDBUTTON": "Hordoffii Dabaluu"
+          },
+          "SECTOR": {
+            "SECTOR": "Kutaa Magaalaa",
+            "TITLE": "",
+            "ADDBUTTON": "Dabaluu Kutaa Magaalaa"
+          },
+          "DIVISION": {
+            "DIVISION": "Aanaa",
+            "TITLE": "Aanaa",
+            "ADDBUTTON": "Dabaluu Aanaa"
+          }
+        }
+      },
+      "TABLE": {
+        "NO": "No",
+        "NAME": "Maqaa",
+        "EMAIL": "Imeelii",
+        "ROLE": "Ga'ee",
+        "STATUS": "Sadarkaa/haala",
+        "PHONENUMBER": "lakkoofsa bilbilaa",
+        "TYPE": "Akaakuu/Gosa",
+        "INITIAL": "Jalqaba/madda",
+        "CLUSTER": "Karoora Xumuraa Maddisiisuu",
+        "SEARCH": "Barbaaduu",
+        "ACTION": "Gocha",
+        "PREVIOUS": "Kan duraa",
+        "NEXT": "Kan itti aanu",
+        "WEIGHT": "Ulfaatina",
+        "MEASURE": "Safaruu",
+        "STRATEGIC_GOAL_MAIN_GOAL_AND_KPI": "Galma tarsiimoo, hojiiwwan gurguddoo fi agarsiistota raawwii hojii ijoo bal’aa",
+        "LAST_YEAR_PERFORMANCE": "Performance of {{lastYear}} (Initial)",
+        "NEXT_YEAR_GOAL": "{{thisYear}} Goal (Annual)",
+        "FIRST_QUARTER": " Kurmaana 1ffaa",
+        "SECOND_QUARTER": "Kurmaana 2ffaa",
+        "THIRD_QUARTER": "Kurmaana 3ffaa",
+        "FOURTH_QUARTER": "Kurmaana 4ffaa",
+        "SIX_MONTH": "Ji'a 6ffaa",
+        "NINE_MONTH": "Ji'a 9ffaa",
+        "FINAL_YEAR": "waggaa",
+        "REPORT_TITLE": "Raawwii kaayyoowwan ijoo ta’an Kutaa Magaalaa",
+        "REPORT_OF_LAST_YEAR": "Utill {{reportLastYear}} performance (Initial)",
+        "REPORT_OF_THIS_YEAR": "{{reportThisYear}} fiscal year quarter performance",
+        "REPORT_PERFORMANCE": "ga'umsa ",
+        "REPORT_GOAL": "Galma",
+        "REPORT_PERFORMANCE_IN_PERCENT": "raawwii hojii dhibbeentaadhaan",
+        "USERTYPE": "Gosa fayyadamaa",
+        "YEAR": "waggaa",
+        "SELECT_YEAR": "Bara filadhu",
+        "QUARTER": "Kurmaana",
+        "SELECT_QUARTER": "Kurmaana filadhu",
+        "SECTOR": "Kutaa Magaalaa",
+        "SELECT_SECTOR": "Filuu Kutaa Magaalaa",
+        "DIVISION": "Aanaa",
+        "SELECT_DIVISION": "Filuu Aanaa",
+        "DESCRIPTION": "KPI Ibsa",
+        "FILTER": "Filter",
+        "CLEAR": "Ifaa"
+      },
+      "FOOTER": {
+        "DATE": "{{year}} © EAII",
+        "COPYRIGHT": "Dizaayinii & Misoome EAII tiin"
+      },
+      "INPUTFIELD": {
+        "ADDNEWUSER": "Fayyadamaa Haaraa Dabaluu",
+        "ADMIN": "Bulchaa",
+        "USER": "Fayyadamaa",
+        "ADD_USER": "Fayyadamaa Dabaluu",
+        "ADD_ADMIN": "Bulchaa Dabaluu ",
+        "FIRSTNAME": "Maqaa jalqabaa",
+        "LASTNAME": "Maqaa abbaa",
+        "EMAIL": "Imeelii",
+        "PHONENUMBER": "Lakkoofsa Mobaayilaa",
+        "GENDER": "Koorniyaa",
+        "ROLE": "Role",
+        "NEWROLE": "Gahee Haaraa",
+        "STRATEGIC_GOAL": "Galma Tarsiimoo",
+        "YEAR": "Waggaa",
+        "WEIGHT": "Ulfaatina",
+        "ADD_STRATEGIC_GOAL": "Galma Tarsiimoo Dabaluu",
+        "ASSIGN_STRATEGIC_GOAL": "Galma Tarsiimoo Ramaduu",
+        "ASSIGN": "Ramaduu",
+        "UPDATE_STRATEGIC_GOAL": "Fooyya’iinsa galma tarsiimoo",
+        "UPDATE": "fooyyessuuf",
+        "MAIN_GOAL": "Galma ijoo",
+        "ADD_MAIN_GOAL": "Galma ijoo Dabaluu",
+        "UPDATE_MAIN_GOAL": "Galma ijoo fooyyessuu",
+        "ADD_NEW_MAIN_GOAL": "Galma ijoo Haaraa Dabaluu",
+        "ADD_NEW_KPI": "Kpi Haaraa Dabaluu",
+        "ADD_KPI": "Kpi itti dabali",
+        "INITIAL": "Jalqaba",
+        "MEASURE": "Safaruu",
+        "KPI": "KPI",
+        "ANNUAL": "Karoora Waggaa",
+        "FIRST_QUARTER": "Kurmaana 1ffaa",
+        "SECOND_QUARTER": "Kurmaana 2ffaa",
+        "THIRD_QUARTER": "Kurmaana 3ffaa",
+        "FOURTH_QUARTER": "Kurmaana 4ffaa",
+        "UPDATE_KPI": "Kpi haaromsuu/fooyyessuu",
+        "ADD_NEW_MEASURE": "Safartuu Haaraa Dabaluu",
+        "ADD_MEASURE": "Safartuu Dabaluu",
+        "TYPE": "Akaakuu/Gosa",
+        "UPDATE_MEASURE": "Safartuu Fooyyessi",
+        "ADD_PERFORMANCE": "Raawwii Hojii Dabaluu",
+        "FIRST_QUARTER_PERFORMANCE": "Raawwii Hojii Kurmaana 1ffaa",
+        "SECOND_QUARTER_PERFORMANCE": "Raawwii Hojii Kurmaana 2ffaa",
+        "THIRD_QUARTER_PERFORMANCE": "Raawwii Hojii Kurmaana 3ffaa",
+        "FOURTH_QUARTER_PERFORMANCE": "Raawwii Hojii Kurmaana 4ffaa",
+        "ADD_MONITORING": "Dabaluu Hordoffii",
+        "MONITORING": "Hordoffii",
+        "UPDATE_MONITORING": "fooyyessa Hordoffii",
+        "ADD_SECTOR": "Dabaluu Kutaa Magaalaa",
+        "SECTOR": "Kutaa Magaalaa",
+        "UPDATE_SECTOR": "fooyyessa Kutaa Magaalaa",
+        "ADD_DIVISION": "Dabaluu Aanaa",
+        "DIVISION": "Aanaa",
+        "UPDATE_DIVISION": "fooyyessa Aanaa",
+        "CANCEL": "Haquu",
+        "DELETE": "Haquu akka barbaaddu mirkaneeffatteettaa?",
+        "NO": "Lakki",
+        "YES": "Eeyyee",
+        "MALE": "Dhiira",
+        "FEMALE": "dhalaa",
+        "OLD_PASSWORD": "Jecha icciitii duraanii",
+        "NEW_PASSWORD": "Jecha icciitii Haaraa",
+        "CONFIRM_PASSWORD": "Jecha icciitii keessan mirkaneessaa",
+        "IMPORT_XML": "Faayilii irraa fe'i"
+      }
+    }
+  }
+  
