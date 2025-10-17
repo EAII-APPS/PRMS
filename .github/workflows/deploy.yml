@@ -1,0 +1,60 @@
+name: CI/CD PRMS_2
+
+on:
+  push:
+    branches:
+      - ci-cd-setup 
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Test React frontend in Docker
+      - name: Test React frontend
+        run: |
+          docker run --rm -v ${{ github.workspace }}/frontend:/app -w /app node:18 npm install
+          docker run --rm -v ${{ github.workspace }}/frontend:/app -w /app node:18 npm test -- --watchAll=false
+
+      # Step 3: Test Django backend in Docker
+      - name: Test Django backend
+        run: |
+          docker run --rm -v ${{ github.workspace }}/backend:/app -w /app python:3.11 bash -c "
+          pip install -r requirements.txt &&
+          python manage.py test
+          "
+
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: test  # Only deploy if tests pass
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: SSH deploy to server
+      - name: SSH Deploy
+        uses: appleboy/ssh-action@v0.1.9
+        with:
+          host: 196.188.240.102
+          port: 30
+          username: sysadmin
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            echo "Pulling latest code..."
+            cd ~/PRMS_2
+            git reset --hard
+            git pull origin ci-cd-setup
+
+            echo "Rebuilding and restarting Docker containers..."
+            docker-compose down
+            docker-compose up -d --build
+
+            echo "Deployment finished successfully!"
