@@ -22,7 +22,6 @@ jobs:
             npm install -g npm@11.6.2
             npm install --include=dev --legacy-peer-deps &&
             npm install react-scripts@5.0.1 --legacy-peer-deps &&
-            npm run test
             npm run test -- --passWithNoTests
           "
           
