@@ -20,7 +20,8 @@ jobs:
         run: |
           docker run --rm -v ${{ github.workspace }}/frontend:/app -w /app node:18 bash -c "
             npm install --include=dev --legacy-peer-deps &&
-            npx react-scripts test --watchAll=false
+            npm install react-scripts@5.0.1 --save-dev &&
+            npm run test
           "
 
       # Step 3: Test Django backend in Docker
