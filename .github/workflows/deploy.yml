@@ -24,6 +24,7 @@ jobs:
             npm install react-scripts@5.0.1 --legacy-peer-deps &&
             npm run test
           "
+          
 
       # Step 3: Test Django backend in Docker
       - name: Test Django backend
