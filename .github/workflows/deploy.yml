@@ -19,8 +19,8 @@ jobs:
       - name: Test React frontend
         run: |
           docker run --rm -v ${{ github.workspace }}/frontend:/app -w /app node:18 bash -c "
-            npm install --include=dev &&
-            npm test -- --watchAll=false
+            npm install --include=dev --legacy-peer-deps &&
+            npx react-scripts test --watchAll=false
           "
 
       # Step 3: Test Django backend in Docker
