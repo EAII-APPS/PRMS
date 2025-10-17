@@ -18,7 +18,7 @@ jobs:
       # Step 2: Test React frontend in Docker
       - name: Test React frontend
         run: |
-          docker run --rm -v ${{ github.workspace }}/frontend:/app -w /app node:18 npm install
+          docker run --rm -v ${{ github.workspace }}/frontend:/app -w /app node:18 npm install --legacy-peer-deps
           docker run --rm -v ${{ github.workspace }}/frontend:/app -w /app node:18 npm test -- --watchAll=false
 
       # Step 3: Test Django backend in Docker
@@ -41,7 +41,7 @@ jobs:
 
       # Step 2: SSH deploy to server
       - name: SSH Deploy
-        uses: appleboy/ssh-action@v0.1.9
+        uses: appleboy/ssh-action@v1
         with:
           host: 196.188.240.102
           port: 30
