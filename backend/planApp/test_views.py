@@ -3,7 +3,7 @@ from rest_framework.test import APIClient
 
 # Import your views and serializers
 from .views import (
-    set_strategic_goal, get_strategic_goals, delete_strategic_goal, update_strategic_goal,
+    get_strategic_goals, delete_strategic_goal, update_strategic_goal,
     # ... other view functions
 )
 from .models import StrategicGoal
