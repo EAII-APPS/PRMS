@@ -69,58 +69,62 @@ class UserViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def my_profile(self, request):
- 
         try:
             user = request.user.id
             user_data = User.objects.get(id=user)
+
+            # Get user permissions
             user_permissions_instances = UserPermission.objects.filter(user_id=user)
             permissions_dict = []
             for user_permission in user_permissions_instances:
                 for permission in user_permission.permission_id.all():
-                    #permissions_dict[permission.name] = user_permission.value  # Assuming Permission model has 'value' attribute
                     permissions_dict.append(permission.name)
 
-            user_role_instances = UserRole.objects.get(user_id=user)
-            #userRoles = [role_instance.role_id.name for role_instance in user_role_instances]
-            userRoles = user_role_instances.role_id.name 
-            
+            # ---- FIX: safely handle user roles ----
+            user_role_instance = UserRole.objects.filter(user_id=user).first()
+
+            if user_role_instance:
+                userRoles = user_role_instance.role_id.name
+            else:
+                userRoles = None  # or "No Role Assigned"
+
             # Serialize user profile data
             profile_data = self.get_serializer(user_data).data
-            
-            # Add user permissions to the profile data
+
             profile_data['userRole'] = userRoles
             profile_data['userPermissions'] = permissions_dict
-            
+
             return Response(profile_data)
+
         except User.DoesNotExist:
             return Response({"error": "User does not exist."}, status=status.HTTP_404_NOT_FOUND)
-        
-    def perform_create(self, serializer):
 
-        
-        user = serializer.save(added_by=self.request.user)
-        role_permissions = user.role.permission_id.all()
-        user_roles = UserRole.objects.create(user_id=user, role_id=user.role)
+        def perform_create(self, serializer):
 
-        # user_permission = UserPermission.objects.create(user_id=user, added_by=self.request.user, permission_id.set(role_permissions))
-        user_permission = UserPermission.objects.create(user_id=user, added_by=self.request.user)
-        user_permission.permission_id.set(role_permissions)
             
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+            user = serializer.save(added_by=self.request.user)
+            role_permissions = user.role.permission_id.all()
+            user_roles = UserRole.objects.create(user_id=user, role_id=user.role)
 
-    def perform_update(self, serializer):
-        serializer.save(updated_by=self.request.user, status_changed_by=self.request.user)
+            # user_permission = UserPermission.objects.create(user_id=user, added_by=self.request.user, permission_id.set(role_permissions))
+            user_permission = UserPermission.objects.create(user_id=user, added_by=self.request.user)
+            user_permission.permission_id.set(role_permissions)
+                
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            
 
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.delete()
-        # instance.deleted_by = request.user
-        # instance.is_deleted = True  # Mark as deleted rather than removing
-        # instance.save()
+        def perform_update(self, serializer):
+            serializer.save(updated_by=self.request.user, status_changed_by=self.request.user)
 
-        # Optionally, you could also return a custom message or data
-        return Response({"message": "User marked as deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+        def destroy(self, request, *args, **kwargs):
+            instance = self.get_object()
+            instance.delete()
+            # instance.deleted_by = request.user
+            # instance.is_deleted = True  # Mark as deleted rather than removing
+            # instance.save()
+
+            # Optionally, you could also return a custom message or data
+            return Response({"message": "User marked as deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
 
 class MonitoringViewSet(viewsets.ModelViewSet):

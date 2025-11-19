@@ -17,6 +17,7 @@ from .models import UserPermission
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import *  # Ensure correct import path
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 import requests
 
 
@@ -134,6 +135,7 @@ def getRoutes(request):
  """
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def user_login(request):
     if request.method != "POST":
         return Response({"detail": "This view only handles POST requests."}, status=status.HTTP_400_BAD_REQUEST)
