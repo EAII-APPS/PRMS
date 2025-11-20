@@ -513,69 +513,75 @@ class SummaryListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        division_id = request.user.division_id
-        sector_id = request.user.sector_id
-        monitoring_id = request.user.monitoring_id
-        is_superadmin = request.user.is_superadmin
-        if division_id:
-            try:
-                if 'pk' in kwargs: 
-                    summary = Summary.objects.get(pk=kwargs['pk'], division_id=division_id)
-                    serializer = SummarySerializer(summary)
+        # Unified filtering: respect user association, then apply query-params
+        division_id = getattr(request.user, 'division_id', None)
+        sector_id = getattr(request.user, 'sector_id', None)
+        monitoring_id = getattr(request.user, 'monitoring_id', None)
+        is_superadmin = getattr(request.user, 'is_superadmin', False)
+
+        filter_year = request.query_params.get('year')
+        filter_quarter = request.query_params.get('quarter')
+        filter_division = request.query_params.get('division')
+        filter_sector = request.query_params.get('sector')
+
+        try:
+            qs = Summary.objects.all()
+
+            # Apply user-level constraints first (users can't see beyond their association)
+            if division_id:
+                qs = qs.filter(division_id=division_id)
+            elif sector_id:
+                qs = qs.filter(sector_id=sector_id)
+            elif monitoring_id:
+                qs = qs.filter(monitoring_id=monitoring_id)
+            # superadmin: no base constraint
+
+            # Apply explicit query params (only if provided). For non-superadmin users these will further narrow results.
+            if filter_division:
+                try:
+                    qs = qs.filter(division_id=int(filter_division))
+                except (ValueError, TypeError):
+                    pass
+
+            if filter_sector:
+                try:
+                    qs = qs.filter(sector_id=int(filter_sector))
+                except (ValueError, TypeError):
+                    pass
+
+            if filter_year:
+                try:
+                    qs = qs.filter(year=int(filter_year))
+                except (ValueError, TypeError):
+                    pass
+
+            # Quarter may come as numeric (1,2,3,4) or as string like 'first'
+            if filter_quarter:
+                q = str(filter_quarter).strip().lower()
+                quarter_map = {
+                    '1': 'first', '2': 'second', '3': 'third', '4': 'fourth',
+                    'first': 'first', 'second': 'second', 'third': 'third', 'fourth': 'fourth',
+                    '6': 'six', '9': 'nine', 'year': 'year'
+                }
+                mapped = quarter_map.get(q)
+                if mapped:
+                    qs = qs.filter(quarter__iexact=mapped)
+
+            # If pk provided, return single instance from the filtered qs
+            if 'pk' in kwargs:
+                try:
+                    obj = qs.get(pk=kwargs['pk'])
+                    serializer = SummarySerializer(obj)
                     return Response(serializer.data, status=status.HTTP_200_OK)
-                else: 
-                    summaries = Summary.objects.filter(division_id=division_id)
-                    serializer = SummarySerializer(summaries, many=True)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            except Summary.DoesNotExist:
-                return Response({"error": "Summary not found"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        elif sector_id:
-            try:
-                if 'pk' in kwargs: 
-                    summary = Summary.objects.get(pk=kwargs['pk'], sector_id=sector_id)
-                    serializer = SummarySerializer(summary)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else: 
-                    summaries = Summary.objects.filter(sector_id=sector_id)
-                    serializer = SummarySerializer(summaries, many=True)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            except Summary.DoesNotExist:
-                return Response({"error": "Summary not found"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-        elif monitoring_id:
-            try:
-                if 'pk' in kwargs: 
-                    summary = Summary.objects.get(pk=kwargs['pk'], monitoring_id=monitoring_id)
-                    serializer = SummarySerializer(summary)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else: 
-                    summaries = Summary.objects.filter(monitoring_id=monitoring_id)
-                    serializer = SummarySerializer(summaries, many=True)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            except Summary.DoesNotExist:
-                return Response({"error": "Summary not found"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-        elif is_superadmin:
-            try:
-                if 'pk' in kwargs: 
-                    summary = Summary.objects.get(pk=kwargs['pk'])
-                    serializer = SummarySerializer(summary)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else: 
-                    summaries = Summary.objects.all()
-                    serializer = SummarySerializer(summaries, many=True)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            except Summary.DoesNotExist:
-                return Response({"error": "Summary not found"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                except Summary.DoesNotExist:
+                    return Response({"error": "Summary not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            # Otherwise return list
+            serializer = SummarySerializer(qs, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -603,6 +609,7 @@ class SummaryListCreate(generics.ListCreateAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 class SummaryRetrieveUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
