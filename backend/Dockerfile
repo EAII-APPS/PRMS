@@ -1,4 +1,3 @@
-
 # backend/Dockerfile
 FROM python:3.10-slim
 
@@ -9,10 +8,15 @@ ENV PYTHONUNBUFFERED 1
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y build-essential && rm -rf /var/lib/apt/lists/*
-RUN apt-get update && apt-get install -y libreoffice && apt-get clean
-# Copy dependencies and install
+# Install system dependencies required for psycopg2 and LibreOffice
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    libreoffice \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy dependencies and install Python packages
 COPY requirements.txt /app/
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt

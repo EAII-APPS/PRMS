@@ -656,72 +656,75 @@ class SummaryFilesListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        division_id = request.user.division_id
-        sector_id = request.user.sector_id
-        monitoring_id = request.user.monitoring_id
-        is_superadmin = request.user.is_superadmin
-        if division_id:
-            sum_id = Summary.objects.filter(division_id = division_id).values_list('id', flat=True)
-            try:
-                if 'pk' in kwargs: 
-                    summary = SummaryFiles.objects.get(pk=kwargs['pk'], summary__in=sum_id)
-                    serializer = SummaryFilesSerializer(summary)
+        # Unified filtering: respect user association, then apply query-params
+        division_id = getattr(request.user, 'division_id', None)
+        sector_id = getattr(request.user, 'sector_id', None)
+        monitoring_id = getattr(request.user, 'monitoring_id', None)
+        is_superadmin = getattr(request.user, 'is_superadmin', False)
+
+        filter_year = request.query_params.get('year')
+        filter_quarter = request.query_params.get('quarter')
+        filter_division = request.query_params.get('division')
+        filter_sector = request.query_params.get('sector')
+
+        try:
+            qs = Summary.objects.all()
+
+            # Apply user-level constraints first (users can't see beyond their association)
+            if division_id:
+                qs = qs.filter(division_id=division_id)
+            elif sector_id:
+                qs = qs.filter(sector_id=sector_id)
+            elif monitoring_id:
+                qs = qs.filter(monitoring_id=monitoring_id)
+            # superadmin: no base constraint
+
+            # Apply explicit query params (only if provided). For non-superadmin users these will further narrow results.
+            if filter_division:
+                try:
+                    qs = qs.filter(division_id=int(filter_division))
+                except (ValueError, TypeError):
+                    pass
+
+            if filter_sector:
+                try:
+                    qs = qs.filter(sector_id=int(filter_sector))
+                except (ValueError, TypeError):
+                    pass
+
+            if filter_year:
+                try:
+                    qs = qs.filter(year=int(filter_year))
+                except (ValueError, TypeError):
+                    pass
+
+            # Quarter may come as numeric (1,2,3,4) or as string like 'first'
+            if filter_quarter:
+                q = str(filter_quarter).strip().lower()
+                quarter_map = {
+                    '1': 'first', '2': 'second', '3': 'third', '4': 'fourth',
+                    'first': 'first', 'second': 'second', 'third': 'third', 'fourth': 'fourth',
+                    '6': 'six', '9': 'nine', 'year': 'year'
+                }
+                mapped = quarter_map.get(q)
+                if mapped:
+                    qs = qs.filter(quarter__iexact=mapped)
+
+            # If pk provided, return single instance from the filtered qs
+            if 'pk' in kwargs:
+                try:
+                    obj = qs.get(pk=kwargs['pk'])
+                    serializer = SummarySerializer(obj)
                     return Response(serializer.data, status=status.HTTP_200_OK)
-                else: 
-                    summaries = SummaryFiles.objects.filter(summary__in=sum_id)
-                    serializer = SummaryFilesSerializer(summaries, many=True)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            except SummaryFiles.DoesNotExist:
-                return Response({"error": "Summary Photo not found"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        elif sector_id:
-            sum_id = Summary.objects.filter(sector_id = sector_id).values_list('id', flat=True)
-            try:
-                if 'pk' in kwargs: 
-                    summary = SummaryFiles.objects.get(pk=kwargs['pk'], summary__in = sum_id)
-                    serializer = SummaryFilesSerializer(summary)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else: 
-                    summaries = SummaryFiles.objects.filter(summary__in=sum_id)
-                    serializer = SummaryFilesSerializer(summaries, many=True)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            except SummaryFiles.DoesNotExist:
-                return Response({"error": "Summary Photo not found"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-        elif monitoring_id:
-            sum_id = Summary.objects.filter(monitoring_id = monitoring_id).values_list('id', flat=True)
-            try:
-                if 'pk' in kwargs: 
-                    summary = SummaryFiles.objects.get(pk=kwargs['pk'], summary__in=sum_id)
-                    serializer = SummaryFilesSerializer(summary)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else: 
-                    summaries = SummaryFiles.objects.filter(summary__in=sum_id)
-                    serializer = SummaryFilesSerializer(summaries, many=True)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            except SummaryFiles.DoesNotExist:
-                return Response({"error": "Summary Photo not found"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-        elif is_superadmin:
-            try:
-                if 'pk' in kwargs: 
-                    summary = SummaryFiles.objects.get(pk=kwargs['pk'])
-                    serializer = SummaryFilesSerializer(summary)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else: 
-                    summaries = SummaryFiles.objects.all()
-                    serializer = SummaryFilesSerializer(summaries, many=True)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            except SummaryFiles.DoesNotExist:
-                return Response({"error": "Summary Photo not found"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                except Summary.DoesNotExist:
+                    return Response({"error": "Summary not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            # Otherwise return list
+            serializer = SummarySerializer(qs, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -1235,55 +1238,72 @@ def add_picture_to_run(run, image_path, width):
 
 
 class GenerateReportDocument(APIView):
-    permission_classes = [IsAuthenticated]
-
+    permission_classes = [IsAuthenticated]  # Add appropriate permissions
     def get(self, request):
         delete_old_documents()
         year_str = request.query_params.get("year")
-        quarter = request.query_params.get("quarter")
-        sector_param = request.query_params.get("sector")
-        division_param = request.query_params.get("division")
+        quarter = request.query_params.get(
+            "quarter"
+        )  # e.g., 'first', 'second', 'six', 'year'
+        sector_param = request.query_params.get("sector")  # ID of the sector
+        division_param = request.query_params.get("division")  # ID of the division
 
         user = request.user
 
-        # --- Validate Year ---
+        # Validate Year
         if not year_str or not year_str.isdigit():
-            return JsonResponse({"error": "Valid Year parameter is required"}, status=400)
+            return JsonResponse(
+                {"error": "Valid Year parameter is required"}, status=400
+            )
         year = int(year_str)
 
-        # --- Validate Quarter ---
+        # Validate Quarter
         valid_quarters = ["first", "second", "third", "fourth", "six", "nine", "year"]
         if quarter and quarter.lower() not in valid_quarters:
             return JsonResponse(
-                {"error": f"Invalid quarter. Choose from: {', '.join(valid_quarters)}"},
+                {
+                    "error": f"Invalid quarter value. Choose from: {', '.join(valid_quarters)}"
+                },
                 status=400,
             )
-        quarter = quarter.lower() if quarter else None
+        quarter = (
+            quarter.lower() if quarter else None
+        )  # Use None if not provided, treat as 'year' later?
 
-        # --- Filter setup ---
+        # --- Centralized Filtering Logic ---
         annual_kpi_filter = Q(year=year)
         summary_filter = Q(year=year)
-        report_title_qualifier = ""
+        report_title_qualifier = ""  # To add Sector/Division name to title
 
+        target_sector_id = None
+        target_division_id = None
         if not sector_param and not division_param:
-            if getattr(user, "is_superadmin", False):
-                report_title_qualifier = "ኢትዮጵያ አርቴፊሻል ኢንተለጀንስ ኢንስቲትዩት"
-            elif getattr(user, "monitoring_id", None):
-                report_title_qualifier = "ኢትዮጵያ አርቴፊሻል ኢንተለጀንስ ኢንስቲትዩት"
-            elif getattr(user, "sector_id", None):
-                summary_filter &= Q(sector_id=user.sector_id.id)
-                annual_kpi_filter &= Q(kpi__main_goal_id__sector_id=user.sector_id.id)
+            if user.is_superadmin:
+                # superadmin sees everything
+                report_title_qualifier = "ኢትዮጵያ አርቴፊሻል ኢንተልጀንስ ኢንስቲትዩት"
+                # no extra filters
+            elif user.monitoring_id:
+                report_title_qualifier = "ኢትዮጵያ አርቴፊሻል ኢንተልጀንስ ኢንስቲትዩት"
+            elif user.sector_id:
+                # sector‐level user
+                target_sector_id = user.sector_id.id
+                summary_filter &= Q(sector_id=target_sector_id)
+                annual_kpi_filter &= Q(kpi__main_goal_id__sector_id=target_sector_id)
                 report_title_qualifier = user.sector_id.name
-            elif getattr(user, "division_id", None):
-                summary_filter &= Q(division_id=user.division_id.id)
-                annual_kpi_filter &= Q(division_id=user.division_id.id)
+            elif user.division_id:
+                # division‐level user
+                target_division_id = user.division_id.id
+                summary_filter &= Q(division_id=target_division_id)
+                annual_kpi_filter &= Q(division_id=target_division_id)
                 report_title_qualifier = user.division_id.name
             else:
-                return JsonResponse(
-                    {"error": "You do not have permission to view this data."}, status=403
-                )
+                return JsonResponse({
+                    "error": "You do not have permission to view any data. "
+                             "Please contact your administrator."
+                }, status=403)
 
-        # --- Fetch Data ---
+        # --- Fetch Data Efficiently ---
+        # Prefetch related objects for AnnualKPIs
         annual_kpis_queryset = (
             AnnualKPI.objects.filter(annual_kpi_filter)
             .select_related(
@@ -1291,8 +1311,8 @@ class GenerateReportDocument(APIView):
                 "kpi__main_goal_id",
                 "kpi__main_goal_id__strategic_goal_id",
                 "measure",
-                "annual_unit_id",
-                "division_id",
+                "annual_unit_id",  # Assuming AnnualKPI has annual_unit_id FK to Unit
+                "division_id",  # Assuming AnnualKPI has division_id FK to Division
                 "initial_unit_id",
                 "pl1_unit_id",
                 "pl2_unit_id",
@@ -1304,6 +1324,7 @@ class GenerateReportDocument(APIView):
                 "pr4_unit_id",
             )
             .prefetch_related(
+                # Prefetch KPI Descriptions and their photos
                 Prefetch(
                     "kpidescription",
                     queryset=KPIDescription.objects.prefetch_related(
@@ -1314,15 +1335,19 @@ class GenerateReportDocument(APIView):
                             ),
                         )
                     ),
-                )
+                ),
+                # Prefetch related sectors/divisions for the KPI itself if needed elsewhere
+                "kpi__division_id",  # M2M on KPI model
+                "kpi__main_goal_id__sector_id",  # M2M on MainGoal model
             )
             .order_by(
-                "kpi__main_goal_id__strategic_goal_id__name",
+                "kpi__main_goal_id__strategic_goal_id__name",  # Order for grouping
                 "kpi__main_goal_id__name",
                 "kpi__name",
             )
         )
 
+        # Prefetch related objects for Summaries
         summaries_queryset = (
             Summary.objects.filter(summary_filter)
             .prefetch_related(
@@ -1333,33 +1358,54 @@ class GenerateReportDocument(APIView):
                 ),
             )
             .order_by("type", "id")
-        )
+        )  # Order by type ('መግቢያ', etc.) then ID
 
+        # Separate summaries by type
+        summaries_by_type = {}
+        for summary in summaries_queryset:
+            summary_type = summary.type  # Assuming type field stores the section name
+            if summary_type not in summaries_by_type:
+                summaries_by_type[summary_type] = []
+            summaries_by_type[summary_type].append(summary)
+
+        # Check if essential data exists
         if not annual_kpis_queryset.exists() and not summaries_queryset.exists():
             return JsonResponse(
-                {"error": f"No data found for Year {year}."}, status=404
+                {"error": f"No data found for Year {year} with the specified filters."},
+                status=404,
             )
 
-        # --- Create Document ---
+        # --- Document Generation ---
         doc = Document()
-
+        # Assuming SystemSetting model exists and has logo_image field
         try:
             system_setting = SystemSetting.objects.first()
-            logo_path = system_setting.logo_image.path if system_setting and system_setting.logo_image else None
+            logo_path = system_setting.logo_image.path
+            # logo_path = None  # Placeholder - Add your SystemSetting logic here
         except Exception as e:
             print(f"Could not load system settings: {e}")
             logo_path = None
 
-        # --- Document Layout ---
+        # Document Setup (Margins, Header/Footer)
         section = doc.sections[0]
         section.top_margin = Inches(1)
         section.bottom_margin = Inches(1)
+        section.header_distance = Inches(0.5)
+        section.footer_distance = Inches(0.5)
+        section.different_first_page_header_footer = True
 
+        # Cover Page Logo
+        print("from the final report generation",system_setting)
+        print("from the final report generation",system_setting.logo_image)
+        print("from the final report generation",system_setting.logo_image.path)
         if logo_path and os.path.exists(logo_path):
-            img_p = doc.add_paragraph()
-            add_picture_to_run(img_p.add_run(), logo_path, width=Inches(2))
-            img_p.alignment = 1  # Center
+            image_paragraph = doc.add_paragraph()
+            add_picture_to_run(image_paragraph.add_run(), logo_path, width=Inches(2))
+            image_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        else:
+            print("Warning: Logo path not found or invalid.")
 
+        # Determine Quarter Name for Title
         quarter_display_names = {
             "first": "የመጀመሪያ ሩብ ዓመት",
             "second": "የሁለተኛ ሩብ ዓመት",
@@ -1369,75 +1415,310 @@ class GenerateReportDocument(APIView):
             "nine": "የ 9 ወር",
             "year": "ዓመታዊ",
         }
+        # Default to annual if quarter is None or 'year'
         quarter_name = quarter_display_names.get(quarter or "year", "ዓመታዊ")
 
+        # Cover Page Title
         title_text = f"{report_title_qualifier} የ {year} በጀት ዓመት {quarter_name} የልማት ዕቅድ አፈፃፀም ሪፖርት"
-        title_p = doc.add_paragraph(title_text)
-        set_paragraph_style(title_p, font_size=Pt(14), bold=True, alignment=1)
+        title_paragraph = doc.add_paragraph(title_text)
+        set_paragraph_style(
+            title_paragraph,
+            font_size=Pt(14),
+            bold=True,
+            alignment=WD_ALIGN_PARAGRAPH.CENTER,
+        )
+
+        # Cover Page Footer
+        first_page_footer = section.first_page_footer
+        fp_footer_p = (
+            first_page_footer.paragraphs[0]
+            if first_page_footer.paragraphs
+            else first_page_footer.add_paragraph()
+        )
+        fp_footer_p.text = f"አዲስ አበባ {year}"  # Assuming "Addis Ababa" is the city
+        fp_footer_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        set_paragraph_style(fp_footer_p, font_size=Pt(10))  # Style footer
+
+        # Main Header (appears on pages after the first)
+        header = section.header
+        header_p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
+        header_p.text = f"የኢትዮጵያ አርቴፊሻል ኢንተለጀንስ ኢንስቲትዩት የ {year} በጀት ዓመት {quarter_name} አፈፃፀም ሪፖርት"  # Adjust Institute name
+        header_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        set_paragraph_style(header_p, font_size=Pt(9))  # Style header
+
+        # Main Footer (appears on pages after the first)
+        footer = section.footer
+        footer_p = footer.paragraphs[0] if footer.paragraphs else footer.add_paragraph()
+        footer_p.text = "AI for All! & አርቲፊሻል ኢንተለጀንስ ለሁሉም!"  # Adjust tagline
+        footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        set_paragraph_style(footer_p, font_size=Pt(9))  # Style footer
 
         doc.add_page_break()
 
-        # --- Generate KPI Table ---
-        generate_kpi_performance_table(doc, request)
+        # --- Content Sections ---
+        report_section_counter = 0
 
-        # --- Save and Convert ---
+        # Function to add summary sections
+        def add_summary_section(doc, summaries, section_title_key, counter):
+            if summaries:
+                counter += 1
+                p = doc.add_paragraph()
+                run = p.add_run(
+                    f"{counter}. {section_title_key}"
+                )  # Use the key as title
+                set_paragraph_style(p, font_size=Pt(14), bold=True)
+
+                for summary in summaries:
+                    # Add description if available
+                    if summary.description:
+                        p_desc = doc.add_paragraph()
+                        run_desc = p_desc.add_run(summary.description)
+                        set_paragraph_style(p_desc, font_size=Pt(12))
+
+                    # Add summary files (if any)
+                    summary_files = list(
+                        summary.summary_files.all()
+                    )  # Access prefetched
+                    if summary_files:
+                        # Consider layout: table, grid, or list? Simple table for now.
+                        table = doc.add_table(rows=1, cols=len(summary_files))
+                        table.style = "Table Grid"  # Optional styling
+                        row_cells = table.rows[0].cells
+                        for idx, photo in enumerate(summary_files):
+                            if photo.photos and hasattr(photo.photos, "path"):
+                                add_picture_to_run(
+                                    row_cells[idx].paragraphs[0].add_run(),
+                                    photo.photos.path,
+                                    width=Inches(1.5),
+                                )
+
+                    # Add subtitles (if any)
+                    subtitle_counter = 0
+                    summary_subtitles = list(
+                        summary.summary_subtitle.all()
+                    )  # Access prefetched
+                    for subtitle in summary_subtitles:
+                        subtitle_counter += 1
+                        p_sub = doc.add_paragraph()
+                        run_sub = p_sub.add_run(
+                            f"{counter}.{subtitle_counter}. {subtitle.subtitle or ' '}"
+                        )
+                        set_paragraph_style(p_sub, font_size=Pt(13), bold=True)
+
+                        if subtitle.description:
+                            p_sub_desc = doc.add_paragraph()
+                            run_sub_desc = p_sub_desc.add_run(subtitle.description)
+                            set_paragraph_style(p_sub_desc, font_size=Pt(12))
+
+                        # Add subtitle files
+                        subtitle_files = list(
+                            subtitle.summary_photo.all()
+                        )  # Access prefetched
+                        if subtitle_files:
+                            sub_table = doc.add_table(rows=1, cols=len(subtitle_files))
+                            sub_table.style = "Table Grid"
+                            sub_row_cells = sub_table.rows[0].cells
+                            for idx, photo in enumerate(subtitle_files):
+                                if photo.photos and hasattr(photo.photos, "path"):
+                                    add_picture_to_run(
+                                        sub_row_cells[idx].paragraphs[0].add_run(),
+                                        photo.photos.path,
+                                        width=Inches(1.5),
+                                    )
+            return counter
+
+        # Add Summary Sections by Type
+        # Define the order and titles for summary sections
+        summary_section_order = [
+            "መግቢያ",
+            "ተቋማዊ የማስፈጸም አቅም፣ የሀብት አጠቃቀም እና የአገልግሎት አሰጣጥ አሰራር ማጎልበት ስራዎችን በተመለከተ",
+            # Add the key for the KPI section placeholder here if needed
+            "በአፈፃፀም ሂደት ያጋጣሙ ተግዳሮቶችና የተወሰዱ የመፍትሔ እርምጃዎች",
+            "ማጠቃለያ",
+        ]
+
+        for section_key in summary_section_order:
+            # Handle KPI section differently below
+            if section_key == "በቁልፍ የውጤት አመልካቾች (KPIs) ላይ የተመሰረተ የልማት ዕቅድ አፈፃፀም ትንተና":
+                continue
+            report_section_counter = add_summary_section(
+                doc,
+                summaries_by_type.get(section_key, []),
+                section_key,
+                report_section_counter,
+            )
+
+        # --- KPI Performance Section ---
+        if annual_kpis_queryset.exists():
+            report_section_counter += 1
+            p_kpi_title = doc.add_paragraph()
+            run_kpi_title = p_kpi_title.add_run(
+                f"{report_section_counter}. በቁልፍ የውጤት አመልካቾች (KPIs) ላይ የተመሰረተ የልማት ዕቅድ አፈፃፀም ትንተና"
+            )
+            set_paragraph_style(p_kpi_title, font_size=Pt(14), bold=True)
+
+            # Group KPIs by Strategic Goal -> Main Goal
+            grouped_kpis = {}
+            current_strategic_goal = None
+            current_main_goal = None
+
+            for annual_kpi in annual_kpis_queryset:
+                # Ensure navigation path is valid
+                if not (
+                    annual_kpi.kpi
+                    and annual_kpi.kpi.main_goal_id
+                    and annual_kpi.kpi.main_goal_id.strategic_goal_id
+                ):
+                    print(
+                        f"Warning: Skipping AnnualKPI ID {annual_kpi.id} due to missing linked KPI/MainGoal/StrategicGoal."
+                    )
+                    continue
+
+                strategic_goal = annual_kpi.kpi.main_goal_id.strategic_goal_id
+                main_goal = annual_kpi.kpi.main_goal_id
+
+                if strategic_goal not in grouped_kpis:
+                    grouped_kpis[strategic_goal] = {}
+                if main_goal not in grouped_kpis[strategic_goal]:
+                    grouped_kpis[strategic_goal][main_goal] = []
+                grouped_kpis[strategic_goal][main_goal].append(annual_kpi)
+
+            # Add KPI descriptions and photos grouped by goal
+            strategic_goal_counter_goal = 0
+            for strategic_goal, main_goals_dict in grouped_kpis.items():
+                strategic_goal_counter_goal += 1
+                p_sg = doc.add_paragraph()
+                run_sg = p_sg.add_run(
+                    f"{report_section_counter}.{strategic_goal_counter_goal}. {strategic_goal.name}"
+                )
+                set_paragraph_style(p_sg, font_size=Pt(14), bold=True)
+
+                main_goal_counter = 0
+                for main_goal, kpi_list in main_goals_dict.items():
+                    main_goal_counter += 1
+                    p_mg = doc.add_paragraph(f"{main_goal.name}")
+                    set_paragraph_style(
+                        p_mg, font_size=Pt(13), bold=True, color=RGBColor(168, 113, 50)
+                    )
+
+                    kpi_counter = 0
+                    for annual_kpi in kpi_list:
+                        kpi_counter += 1
+                        p_kpi = doc.add_paragraph(f"{annual_kpi.kpi.name}")
+                        set_paragraph_style(
+                            p_kpi, font_size=Pt(12), bullet=True, bold=True
+                        )
+
+                        # Access prefetched descriptions and photos
+                        for kpi_desc_instance in annual_kpi.kpidescription.all():
+                            for desc_instance in kpi_desc_instance.description.all():
+                                if desc_instance.description:
+                                    p_desc = doc.add_paragraph(
+                                        desc_instance.description
+                                    )
+                                    set_paragraph_style(p_desc, font_size=Pt(12))
+
+                                photos = list(desc_instance.description_photo.all())
+                                if photos:
+                                    photo_table = doc.add_table(
+                                        rows=1, cols=len(photos)
+                                    )
+                                    photo_table.style = "Table Grid"
+                                    photo_cells = photo_table.rows[0].cells
+                                    for idx, photo in enumerate(photos):
+                                        if photo.photos and hasattr(
+                                            photo.photos, "path"
+                                        ):
+                                            add_picture_to_run(
+                                                photo_cells[idx]
+                                                .paragraphs[0]
+                                                .add_run(),
+                                                photo.photos.path,
+                                                width=Inches(1.5),
+                                            )
+
+        generate_kpi_performance_table(doc,request)
+        # --- Add remaining Summary Sections ---
+        remaining_sections = ["በአፈፃፀም ሂደት ያጋጣሙ ተግዳሮቶችና የተወሰዱ የመፍትሔ እርምጃዎች", "ማጠቃለያ"]
+        for section_key in remaining_sections:
+            report_section_counter = add_summary_section(
+                doc,
+                summaries_by_type.get(section_key, []),
+                section_key,
+                report_section_counter,
+            )
+
+        # --- Save and Convert Document ---
         try:
+            # Save docx temporarily (no pythoncom on Linux)
             with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp_file:
                 temp_path = tmp_file.name
                 doc.save(temp_path)
 
+            # Use settings.MEDIA_ROOT for storing generated files
             doc_dir = os.path.join(settings.MEDIA_ROOT, "documents")
             os.makedirs(doc_dir, exist_ok=True)
 
+            # Sanitize filename
             safe_qualifier = re.sub(r"\W+", "_", report_title_qualifier)
             base_filename = f"{year}_{quarter or 'annual'}_{safe_qualifier}_report"
-            docx_filename = f"{base_filename}.docx"
-            pdf_filename = f"{base_filename}.pdf"
+            docx_filename_final = f"{base_filename}.docx"
+            pdf_filename_final = f"{base_filename}.pdf"
 
-            docx_rel = os.path.join("documents", docx_filename)
-            pdf_rel = os.path.join("documents", pdf_filename)
-            docx_full = os.path.join(doc_dir, docx_filename)
-            pdf_full = os.path.join(doc_dir, pdf_filename)
+            # Relative storage paths
+            docx_relative_path = os.path.join("documents", docx_filename_final)
+            pdf_relative_path = os.path.join("documents", pdf_filename_final)
 
-            with open(temp_path, "rb") as f:
-                default_storage.save(docx_rel, f)
-            os.remove(temp_path)
+            # Full filesystem paths
+            docx_full_path = os.path.join(doc_dir, docx_filename_final)
+            pdf_full_path = os.path.join(doc_dir, pdf_filename_final)
 
-            # Convert DOCX → PDF via LibreOffice
-            actual_docx_path = default_storage.path(docx_rel)
+            # Save docx file
+            with open(temp_path, "rb") as f_read:
+                default_storage.save(docx_relative_path, f_read)
+
+            # Get actual filesystem path
+            actual_docx_filesystem_path = default_storage.path(docx_relative_path)
+
+            # ---- Linux PDF Conversion using LibreOffice ----
+            import subprocess
+
             subprocess.run(
                 [
                     "libreoffice",
                     "--headless",
-                    "--convert-to",
-                    "pdf",
-                    "--outdir",
-                    doc_dir,
-                    actual_docx_path,
+                    "--convert-to", "pdf",
+                    "--outdir", doc_dir,
+                    actual_docx_filesystem_path
                 ],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                check=True
             )
 
-            # --- Response ---
+            # Clean up temporary file
+            os.remove(temp_path)
+
+            # --- Modified Response ---
+            docpath = docx_filename_final
+            pdfpath = pdf_filename_final
+
             return JsonResponse(
                 {
-                    "message": "Document saved successfully",
-                    "docx_file_path": f"http://127.0.0.1:8000/media/documents/{docx_filename}",
-                    "pdf_file_path": f"http://127.0.0.1:8000/media/documents/{pdf_filename}",
+                    "message": "Document saved",
+                    "docx_file_path": "http://196.188.240.102:4020/media/documents/" + docpath,
+                    "pdf_file_path": "http://196.188.240.102:4020/media/documents/" + pdfpath,
                 },
                 status=200,
             )
 
-        except subprocess.CalledProcessError as e:
-            print(f"LibreOffice conversion failed: {e}")
-            traceback.print_exc()
-            return JsonResponse({"error": f"LibreOffice conversion failed: {e}"}, status=500)
         except Exception as e:
             print(f"Error during document saving/conversion: {e}")
+            import traceback
             traceback.print_exc()
-            return JsonResponse({"error": str(e)}, status=500)
+            return JsonResponse(
+                {"error": f"An error occurred during document generation: {e}"},
+                status=500,
+            )
+
 
 def generate_kpi_performance_table(doc,request):
         unit_lookup = {}
@@ -1762,8 +2043,8 @@ def generate_kpi_performance_table(doc,request):
 #         docpath = os.path.basename(docx_file_path)
 #         return JsonResponse({
 #             "message": "Document saved",
-#             "docx_file_path": f"http://127.0.0.1:8000/media/documents/{docpath}",
-#             "pdf_file_path": f"http://127.0.0.1:8000/media/documents/{pdfpath}"
+#             "docx_file_path": f"http://196.188.240.102:4020/media/documents/{docpath}",
+#             "pdf_file_path": f"http://196.188.240.102:4020/media/documents/{pdfpath}"
 #         }, status=200)
 #     finally:
 #         pythoncom.CoUninitialize()
@@ -1813,7 +2094,7 @@ def filter_and_generate_kpi_report(request):
         os.remove(temp_docx_path)
 
         # --- Construct response paths ---
-        doc_url_base = "http://127.0.0.1:8000/media/documents/"
+        doc_url_base = "http://196.188.240.102:4020/media/documents/"
         docx_url = doc_url_base + docx_filename_final
         pdf_url = doc_url_base + pdf_filename_final
 

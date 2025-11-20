@@ -1,9 +1,7 @@
-version: '3.9'
-
 services:
   backend:
     build: ./backend
-    container_name: django-backend 
+    container_name: django-backend
     ports:
       - "4020:8000"
     volumes:
@@ -14,14 +12,28 @@ services:
       - DJANGO_SETTINGS_MODULE=backend.settings
       - ALLOWED_HOSTS=*
     restart: unless-stopped
+    networks:
+      - prms_network
 
   frontend:
-    build: ./frontend
-    container_name: react-frontend 
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile          # your dev Dockerfile
+    container_name: react-frontend
+    command: ["npm", "run", "dev", "--", "--host"]
     ports:
-      - "4021:4020"
+      - "4021:4021"
     volumes:
       - ./frontend:/app
-    stdin_open: true
-    tty: true
-    
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - prms_network
+
+networks:
+  prms_network:
+    driver: bridge

@@ -894,8 +894,8 @@ def generate_docx(request):
 
         # Prepare response
         response = {
-            'docx_file_path': f"http://127.0.0.1:8000/media/plandocuments/{docx_file_name}",
-            'pdf_file_path': f"http://127.0.0.1:8000/media/plandocuments/{docx_file_name.replace('.docx', '.pdf')}"
+            'docx_file_path': f"http://http://196.188.240.102/:8000/media/plandocuments/{docx_file_name}",
+            'pdf_file_path': f"http://196.188.240.102:4020/media/plandocuments/{docx_file_name.replace('.docx', '.pdf')}"
         }
 
         print(f"Document opened from {os.path.basename(final_pdf_path)}")
@@ -1561,8 +1561,8 @@ def merge_doc(request):
 
         # Prepare response
         response = {
-            'docx_file_path': f"http://127.0.0.1:8000/media/plandocuments/{docx_file_name}",
-            'pdf_file_path': f"http://127.0.0.1:8000/media/plandocuments/{docx_file_name.replace('.docx', '.pdf')}"
+            'docx_file_path': f"http://196.188.240.102:4020/media/plandocuments/{docx_file_name}",
+            'pdf_file_path': f"http://196.188.240.102:4020/media/plandocuments/{docx_file_name.replace('.docx', '.pdf')}"
         }
 
         print(f"Document opened from {os.path.basename(final_pdf_path)}")

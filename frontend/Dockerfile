@@ -1,33 +1,20 @@
-# Stage 1: Build the app for production
-FROM node:18 AS build
+# Use Node.js base image
+FROM node:18
 
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy dependency files
 COPY package*.json ./
 
-# Install dependencies ignoring peer dependency conflicts
+# Install dependencies
 RUN npm install --legacy-peer-deps
 
-# Copy all source files
+# Copy all project files
 COPY . .
 
-# Build the Vite app
-RUN npm run build
+# Expose the development server port (default for Vite is 5173, CRA is 3000)
+EXPOSE 4021
 
-# Stage 2: Production image
-FROM node:18-alpine
-
-WORKDIR /app
-
-# Install serve to serve the build folder
-RUN npm install -g serve
-
-# Copy build from previous stage
-COPY --from=build /app/dist ./dist
-
-# Expose port 8080 for production
-EXPOSE 4020
-
-# Serve production build
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "4020"]
+# Run the development server
+CMD ["npm", "run", "dev", "--", "--host"]

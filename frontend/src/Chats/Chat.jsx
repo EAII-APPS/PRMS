@@ -302,7 +302,7 @@ const MessageScreen = ({setUnreadCounts, markMessagesAsRead}) => {
             <div key={user.id} className="horizontal-align">
               {user.photo ? (
               <img
-                src={`http://127.0.0.1:8000${user.photo}`}
+                src={`http://196.188.240.102:4020${user.photo}`}
                 className="rounded-circle"
                 alt={`${user.first_name} ${user.last_name}`}
                 width="40"
