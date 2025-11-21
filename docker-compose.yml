@@ -1,4 +1,10 @@
+version: "3.9"
+
 services:
+
+  # ------------------
+  # Django Backend
+  # ------------------
   backend:
     build: ./backend
     container_name: django-backend
@@ -15,25 +21,97 @@ services:
     networks:
       - prms_network
 
+  # ------------------
+  # React Frontend (Production)
+  # ------------------
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile          # your dev Dockerfile
+      dockerfile: Dockerfile  # production Dockerfile with Nginx
     container_name: react-frontend
-    command: ["npm", "run", "dev", "--", "--host"]
     ports:
-      - "4021:4021"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true
+      - "4021:80"  # Nginx serves on 80 internally
     depends_on:
       - backend
     restart: unless-stopped
     networks:
       - prms_network
 
+  # ------------------
+  # Prometheus
+  # ------------------
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "4022:9090"
+    networks:
+      - prms_network
+
+  # ------------------
+  # cAdvisor
+  # ------------------
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    container_name: cadvisor
+    ports:
+      - "4024:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - prms_network
+
+  # ------------------
+  # Grafana
+  # ------------------
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - prms_network
+
+  # ------------------
+  # Loki (Logs storage)
+  # ------------------
+  loki:
+    image: grafana/loki:2.8.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/wal:/wal
+      - ./loki/index:/loki/index
+      - ./loki/chunks:/loki/chunks
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+    networks:
+      - prms_network
+
+  # ------------------
+  # Promtail (Logs collector)
+  # ------------------
+  promtail:
+    image: grafana/promtail:2.8.0
+    container_name: promtail
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+    command: -config.file=/etc/promtail/config.yaml
+    networks:
+      - prms_network
+
+# ------------------
+# Networks
+# ------------------
 networks:
   prms_network:
     driver: bridge

@@ -1156,6 +1156,15 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
       console.error('Error generating document:', error);
     }
   };
+const quarterLabels = {
+  12: "Annual",
+  1: "First Quarter",
+  2: "Second Quarter",
+  3: "Third Quarter",
+  4: "Fourth Quarter",
+  6: "Six Month",
+  9: "Nine Month",
+};
 
   return (
     <>
@@ -1196,7 +1205,7 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
               className="text-xs md:text-sm"
             >
               {[
-                { value: "12", label: t("MAIN.TABLE.YEAR") },
+                { value: "12", label: t("MAIN.TABLE.ANNUAL") },
                 { value: "1", label: t("MAIN.TABLE.FIRST_QUARTER") },
                 { value: "2", label: t("MAIN.TABLE.SECOND_QUARTER") },
                 { value: "3", label: t("MAIN.TABLE.THIRD_QUARTER") },
@@ -1381,10 +1390,11 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
                           </Typography>
                         </td>
                         <td className={classes}>
-                          <Typography variant="small" color="blue-gray" className="font-normal">
-                            {quarter}
-                          </Typography>
-                        </td>
+  <Typography variant="small" color="blue-gray" className="font-normal">
+    {quarterLabels[quarter] || quarter}
+  </Typography>
+</td>
+
                         {authInfo.user.sector_id && (
                           <td className={classes}>
                             <label className="flex justify-center items-center cursor-pointer">

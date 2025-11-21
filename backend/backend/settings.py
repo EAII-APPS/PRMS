@@ -63,6 +63,8 @@ INSTALLED_APPS = [
     'reportApp.apps.ReportappConfig',
     'comApp.apps.ComappConfig',
     'monApp.apps.MonappConfig',  
+    'django_prometheus',
+
 ]
 
 SIMPLE_JWT = {
@@ -96,7 +98,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',    
-
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 
 ]
 ROOT_URLCONF = 'backend.urls'

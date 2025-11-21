@@ -912,7 +912,7 @@ const groupedData = Object.values(groupedRows);
                 <option value="fourth">Fourth Quarter</option>
                 <option value="six">Six month</option>
                 <option value="nine">Nine month</option>
-                <option value="year">year</option>
+                <option value="year">Annual</option>
               </select>
               <div className="w-11/12  justify-self-center">
                 {errorMessage && errorMessage === 403 && (
@@ -1292,7 +1292,15 @@ const groupedData = Object.values(groupedRows);
     },
 
   ];
-
+const quarterLabels = {
+  12: "Annual",
+  1: "First Quarter",
+  2: "Second Quarter",
+  3: "Third Quarter",
+  4: "Fourth Quarter",
+  6: "Six Month",
+  9: "Nine Month",
+};
   return (
     <>
       <p className="text-base font-bold font-sans ">{t("MAIN.SIDEBAR.PLAN.PLAN_SUMMARY.SUMMARY")}</p>
@@ -1329,7 +1337,7 @@ const groupedData = Object.values(groupedRows);
         onChange={(e) => setSelectedQuarter(e)}
       >
         {[
-          { value: "12", label: t("MAIN.TABLE.YEAR") },
+          { value: "12", label: t("MAIN.TABLE.ANNUAL") },
           { value: "1", label: t("MAIN.TABLE.FIRST_QUARTER") },
           { value: "2", label: t("MAIN.TABLE.SECOND_QUARTER") },
           { value: "3", label: t("MAIN.TABLE.THIRD_QUARTER") },
@@ -1512,7 +1520,7 @@ const groupedData = Object.values(groupedRows);
                     color="blue-gray"
                     className="font-normal"
                   >
-                    {quarter}
+                     {quarterLabels[quarter] || quarter}
                   </Typography>
                 </td>
                 <td className={classes}>
@@ -1772,6 +1780,7 @@ const groupedData = Object.values(groupedRows);
                 <option value="fourth">Fourth Quarter</option>
                 <option value="six">Six month</option>
                 <option value="nine">Nine month</option>
+                <option value="year">Annual</option>
               </select>
 
               <textarea

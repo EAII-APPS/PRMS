@@ -513,149 +513,6 @@ class SummaryListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        division_id = request.user.division_id
-        sector_id = request.user.sector_id
-        monitoring_id = request.user.monitoring_id
-        is_superadmin = request.user.is_superadmin
-        if division_id:
-            try:
-                if 'pk' in kwargs: 
-                    summary = Summary.objects.get(pk=kwargs['pk'], division_id=division_id)
-                    serializer = SummarySerializer(summary)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else: 
-                    summaries = Summary.objects.filter(division_id=division_id)
-                    serializer = SummarySerializer(summaries, many=True)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            except Summary.DoesNotExist:
-                return Response({"error": "Summary not found"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        elif sector_id:
-            try:
-                if 'pk' in kwargs: 
-                    summary = Summary.objects.get(pk=kwargs['pk'], sector_id=sector_id)
-                    serializer = SummarySerializer(summary)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else: 
-                    summaries = Summary.objects.filter(sector_id=sector_id)
-                    serializer = SummarySerializer(summaries, many=True)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            except Summary.DoesNotExist:
-                return Response({"error": "Summary not found"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-        elif monitoring_id:
-            try:
-                if 'pk' in kwargs: 
-                    summary = Summary.objects.get(pk=kwargs['pk'], monitoring_id=monitoring_id)
-                    serializer = SummarySerializer(summary)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else: 
-                    summaries = Summary.objects.filter(monitoring_id=monitoring_id)
-                    serializer = SummarySerializer(summaries, many=True)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            except Summary.DoesNotExist:
-                return Response({"error": "Summary not found"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-        elif is_superadmin:
-            try:
-                if 'pk' in kwargs: 
-                    summary = Summary.objects.get(pk=kwargs['pk'])
-                    serializer = SummarySerializer(summary)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else: 
-                    summaries = Summary.objects.all()
-                    serializer = SummarySerializer(summaries, many=True)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            except Summary.DoesNotExist:
-                return Response({"error": "Summary not found"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        try:
-            if serializer.is_valid():
-                user = request.user
-                user_has_required_association = False
-                
-                if (hasattr(user, 'sector_id') and user.sector_id is not None and hasattr(user, 'division_id') and user.division_id is None):
-                    user_has_required_association = True
-                    serializer.validated_data['sector_id'] = user.sector_id
-                if hasattr(user, 'monitoring_id') and user.monitoring_id is not None:
-                    user_has_required_association = True
-                    serializer.validated_data['monitoring_id'] = user.monitoring_id
-                if hasattr(user, 'division_id') and user.division_id is not None:
-                    user_has_required_association = True
-                    serializer.validated_data['division_id'] = user.division_id
-
-                if user_has_required_association:
-                    serializer.save()
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
-                else:
-                    return Response({"error": "User must belong to at least one sector_id, monitoring_id, or division_id."}, status=status.HTTP_400_BAD_REQUEST)
-
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class SummaryRetrieveUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Summary.objects.all()
-    serializer_class = SummarySerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_summary(self, pk):
-        return get_object_or_404(Summary, pk=pk)
-    
-    def delete(self, request, pk):
-        try:
-            summary = self.get_summary(pk)
-            summary.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def put(self, request, pk, *args, **kwargs):
-        instance = self.get_summary(pk)
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
-        try:
-            if serializer.is_valid():
-                user = request.user
-                user_has_required_association = False
-                
-                if (hasattr(user, 'sector_id') and user.sector_id is not None and hasattr(user, 'division_id') and user.division_id is None):
-                    user_has_required_association = True
-                    serializer.validated_data['sector_id'] = user.sector_id
-                if hasattr(user, 'monitoring_id') and user.monitoring_id is not None:
-                    user_has_required_association = True
-                    serializer.validated_data['monitoring_id'] = user.monitoring_id
-                if hasattr(user, 'division_id') and user.division_id is not None:
-                    user_has_required_association = True
-                    serializer.validated_data['division_id'] = user.division_id
-
-                if user_has_required_association:
-                    serializer.save()
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else:
-                    return Response({"error": "User must belong to at least one sector_id, monitoring_id, or division_id."}, status=status.HTTP_400_BAD_REQUEST)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
-class SummaryFilesListCreate(generics.ListCreateAPIView):
-    queryset = SummaryFiles.objects.all()
-    serializer_class = SummaryFilesSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, *args, **kwargs):
         # Unified filtering: respect user association, then apply query-params
         division_id = getattr(request.user, 'division_id', None)
         sector_id = getattr(request.user, 'sector_id', None)
@@ -725,6 +582,151 @@ class SummaryFilesListCreate(generics.ListCreateAPIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            if serializer.is_valid():
+                user = request.user
+                user_has_required_association = False
+                
+                if (hasattr(user, 'sector_id') and user.sector_id is not None and hasattr(user, 'division_id') and user.division_id is None):
+                    user_has_required_association = True
+                    serializer.validated_data['sector_id'] = user.sector_id
+                if hasattr(user, 'monitoring_id') and user.monitoring_id is not None:
+                    user_has_required_association = True
+                    serializer.validated_data['monitoring_id'] = user.monitoring_id
+                if hasattr(user, 'division_id') and user.division_id is not None:
+                    user_has_required_association = True
+                    serializer.validated_data['division_id'] = user.division_id
+
+                if user_has_required_association:
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({"error": "User must belong to at least one sector_id, monitoring_id, or division_id."}, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SummaryRetrieveUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Summary.objects.all()
+    serializer_class = SummarySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_summary(self, pk):
+        return get_object_or_404(Summary, pk=pk)
+    
+    def delete(self, request, pk):
+        try:
+            summary = self.get_summary(pk)
+            summary.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def put(self, request, pk, *args, **kwargs):
+        instance = self.get_summary(pk)
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        try:
+            if serializer.is_valid():
+                user = request.user
+                user_has_required_association = False
+                
+                if (hasattr(user, 'sector_id') and user.sector_id is not None and hasattr(user, 'division_id') and user.division_id is None):
+                    user_has_required_association = True
+                    serializer.validated_data['sector_id'] = user.sector_id
+                if hasattr(user, 'monitoring_id') and user.monitoring_id is not None:
+                    user_has_required_association = True
+                    serializer.validated_data['monitoring_id'] = user.monitoring_id
+                if hasattr(user, 'division_id') and user.division_id is not None:
+                    user_has_required_association = True
+                    serializer.validated_data['division_id'] = user.division_id
+
+                if user_has_required_association:
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                else:
+                    return Response({"error": "User must belong to at least one sector_id, monitoring_id, or division_id."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class SummaryFilesListCreate(generics.ListCreateAPIView):
+    queryset = SummaryFiles.objects.all()
+    serializer_class = SummaryFilesSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        division_id = request.user.division_id
+        sector_id = request.user.sector_id
+        monitoring_id = request.user.monitoring_id
+        is_superadmin = request.user.is_superadmin
+        if division_id:
+            sum_id = Summary.objects.filter(division_id = division_id).values_list('id', flat=True)
+            try:
+                if 'pk' in kwargs: 
+                    summary = SummaryFiles.objects.get(pk=kwargs['pk'], summary__in=sum_id)
+                    serializer = SummaryFilesSerializer(summary)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                else: 
+                    summaries = SummaryFiles.objects.filter(summary__in=sum_id)
+                    serializer = SummaryFilesSerializer(summaries, many=True)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+            except SummaryFiles.DoesNotExist:
+                return Response({"error": "Summary Photo not found"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        elif sector_id:
+            sum_id = Summary.objects.filter(sector_id = sector_id).values_list('id', flat=True)
+            try:
+                if 'pk' in kwargs: 
+                    summary = SummaryFiles.objects.get(pk=kwargs['pk'], summary__in = sum_id)
+                    serializer = SummaryFilesSerializer(summary)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                else: 
+                    summaries = SummaryFiles.objects.filter(summary__in=sum_id)
+                    serializer = SummaryFilesSerializer(summaries, many=True)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+            except SummaryFiles.DoesNotExist:
+                return Response({"error": "Summary Photo not found"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+        elif monitoring_id:
+            sum_id = Summary.objects.filter(monitoring_id = monitoring_id).values_list('id', flat=True)
+            try:
+                if 'pk' in kwargs: 
+                    summary = SummaryFiles.objects.get(pk=kwargs['pk'], summary__in=sum_id)
+                    serializer = SummaryFilesSerializer(summary)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                else: 
+                    summaries = SummaryFiles.objects.filter(summary__in=sum_id)
+                    serializer = SummaryFilesSerializer(summaries, many=True)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+            except SummaryFiles.DoesNotExist:
+                return Response({"error": "Summary Photo not found"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+        elif is_superadmin:
+            try:
+                if 'pk' in kwargs: 
+                    summary = SummaryFiles.objects.get(pk=kwargs['pk'])
+                    serializer = SummaryFilesSerializer(summary)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                else: 
+                    summaries = SummaryFiles.objects.all()
+                    serializer = SummaryFilesSerializer(summaries, many=True)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+            except SummaryFiles.DoesNotExist:
+                return Response({"error": "Summary Photo not found"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

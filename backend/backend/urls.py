@@ -10,6 +10,7 @@ urlpatterns = [
     path("__debug__/", include("debug_toolbar.urls")),
     path("planApp/", include("planApp.urls")),
     #('api-auth/', include('rest_framework.urls')),
+    path("", include("django_prometheus.urls")),
 
 
     path('roleApp/',include('roleApp.urls')),

@@ -229,6 +229,7 @@
       "REPORT_PERFORMANCE_IN_PERCENT": "performance in percent",
       "USERTYPE": "User type",
       "YEAR": "Year",
+      "ANNUAL" : "Annual",
       "SELECT_YEAR": "Select year",
       "SELECT_START_YEAR": "Select Start Year",
       "QUARTER": "Quarter",

@@ -1,20 +1,30 @@
-# Use Node.js base image
-FROM node:18
+# Stage 1: Build the React app
+FROM node:18 AS build
 
-# Set working directory
 WORKDIR /app
 
 # Copy dependency files
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install --legacy-peer-deps
 
 # Copy all project files
 COPY . .
 
-# Expose the development server port (default for Vite is 5173, CRA is 3000)
-EXPOSE 4021
+# Build the app
+RUN npm run build
 
-# Run the development server
-CMD ["npm", "run", "dev", "--", "--host"]
+# Stage 2: Serve with Nginx
+FROM nginx:alpine
+
+# Copy build output to Nginx html folder
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copy custom nginx config (optional, can skip for basic setup)
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80 (standard HTTP)
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
