@@ -555,21 +555,23 @@ def generate_docx(request):
 
     if sector or division is not None:
         if sector is not None:
+            print("lalalalla")
+            document_user=User.objects.filter(id=plandocument.added_by.id)
             table_data = generate_docx_data(
                 filter_year=filter_year,
                 filter_sector=sector,
                 filter_division=None,
                 filter_quarter=filter_quarter,
-                user=request.user,
+                user=document_user,
             )
         elif division is not None:
-            document_user=User.objects.filter(id=division)
+            document_user=User.objects.filter(id=plandocument.added_by.id)
             table_data = generate_docx_data(
                 filter_year=filter_year,
                 filter_sector=None,
                 filter_division=division,
                 filter_quarter=filter_quarter,
-                user=request.user,
+                user=document_user,
             )
     if (user.is_superuser or user.monitoring_id):
         document_user=User.objects.get(id=plandocument.added_by.id)
@@ -581,12 +583,13 @@ def generate_docx(request):
             user=document_user,
         )
     else:
+        document_user=User.objects.get(id=plandocument.added_by.id)
         table_data = generate_docx_data(
             filter_year=filter_year,
             filter_sector=sector,
             filter_division=division,
             filter_quarter=filter_quarter,
-            user=request.user,
+            user=document_user,
         )
     docx = Document()
     styles = docx.styles
@@ -894,7 +897,7 @@ def generate_docx(request):
 
         # Prepare response
         response = {
-            'docx_file_path': f"http://http://196.188.240.102/:8000/media/plandocuments/{docx_file_name}",
+            'docx_file_path': f"http://196.188.240.102:4020/media/plandocuments/{docx_file_name}",
             'pdf_file_path': f"http://196.188.240.102:4020/media/plandocuments/{docx_file_name.replace('.docx', '.pdf')}"
         }
 
