@@ -1241,56 +1241,121 @@ def add_picture_to_run(run, image_path, width):
         print(f"Error adding picture {image_path}: {e}")
 
 
+
+def get_filter_display_name(user, sector_param, division_param, quarter, year):
+    """Generate dynamic display names based on filters"""
+    quarter_display_names = {
+        "first": "የመጀመሪያ ሩብ ዓመት",
+        "second": "የሁለተኛ ሩብ ዓመት",
+        "third": "የሶስተኛ ሩብ ዓመት",
+        "fourth": "የአራተኛ ሩብ ዓመት",
+        "six": "የ 6 ወር",
+        "nine": "የ 9 ወር",
+        "year": "ዓመታዊ",
+    }
+    
+    quarter_name = quarter_display_names.get(quarter or "year", "ዓመታዊ")
+    
+    org_name = ""
+    org_type = ""
+    
+    if sector_param:
+        sectors = Sector.objects.filter(id__in=sector_param.split(','))
+        org_name = " እና ".join([s.name for s in sectors])
+        org_type = "ሴክተር"
+    elif division_param:
+        divisions = Division.objects.filter(id__in=division_param.split(','))
+        org_name = " እና ".join([d.name for d in divisions])
+        org_type = "ዲቪዥን"
+    elif getattr(user, 'sector_id', None):
+        org_name = user.sector_id.name
+        org_type = "ሴክተር"
+    elif getattr(user, 'division_id', None):
+        org_name = user.division_id.name
+        org_type = "ዲቪዥን"
+    else:
+        org_name = "ኢትዮጵያ አርቴፊሻል ኢንተለጀንስ ኢንስቲትዩት"
+        org_type = ""
+    
+    return org_name, org_type, quarter_name
+
+
+def build_filters(request):
+    """Build comprehensive filters based on user role and query parameters"""
+    user = request.user
+    year_str = request.query_params.get("year") if hasattr(request, 'query_params') else request.GET.get("year")
+    quarter = request.query_params.get("quarter") if hasattr(request, 'query_params') else request.GET.get("quarter")
+    sector_param = request.query_params.get("sector") if hasattr(request, 'query_params') else request.GET.get("sector")
+    division_param = request.query_params.get("division") if hasattr(request, 'query_params') else request.GET.get("division")
+    
+    if not year_str or not year_str.isdigit():
+        return None, "Valid Year parameter is required"
+    year = int(year_str)
+    
+    valid_quarters = ["first", "second", "third", "fourth", "six", "nine", "year"]
+    if quarter and quarter.lower() not in valid_quarters:
+        return None, f"Invalid quarter. Choose from: {', '.join(valid_quarters)}"
+    quarter = quarter.lower() if quarter else None
+    
+
+    annual_kpi_filter = Q(year=year)
+    summary_filter = Q(year=year)
+    
+    if quarter and quarter != 'year':
+        summary_filter &= Q(quarter__iexact=quarter)
+    
+    if sector_param:
+        sector_ids = [int(s) for s in sector_param.split(',')]
+        summary_filter &= Q(sector_id__in=sector_ids)
+        annual_kpi_filter &= Q(kpi__main_goal_id__sector_id__in=sector_ids)
+    elif division_param:
+        division_ids = [int(d) for d in division_param.split(',')]
+        summary_filter &= Q(division_id__in=division_ids)
+        annual_kpi_filter &= Q(division_id__in=division_ids)
+    elif getattr(user, 'division_id', None):
+        summary_filter &= Q(division_id=user.division_id.id)
+        annual_kpi_filter &= Q(division_id=user.division_id.id)
+    elif getattr(user, 'sector_id', None):
+        summary_filter &= Q(sector_id=user.sector_id.id)
+        annual_kpi_filter &= Q(kpi__main_goal_id__sector_id=user.sector_id.id)
+    elif not (getattr(user, 'is_superadmin', False) or getattr(user, 'monitoring_id', None)):
+        return None, "You do not have permission to view this data."
+    
+    return {
+        'annual_kpi_filter': annual_kpi_filter,
+        'summary_filter': summary_filter,
+        'year': year,
+        'quarter': quarter,
+        'sector_param': sector_param,
+        'division_param': division_param
+    }, None
+    
+
 class GenerateReportDocument(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         delete_old_documents()
-        year_str = request.query_params.get("year")
-        quarter = request.query_params.get("quarter")
-        sector_param = request.query_params.get("sector")
-        division_param = request.query_params.get("division")
-
+        
+        filters, error = build_filters(request)
+        if error:
+            return JsonResponse({"error": error}, status=400)
+        
         user = request.user
+        year = filters['year']
+        quarter = filters['quarter']
+        annual_kpi_filter = filters['annual_kpi_filter']
+        summary_filter = filters['summary_filter']
+        
+        org_name, org_type, quarter_name = get_filter_display_name(
+            user,
+            filters['sector_param'],
+            filters['division_param'],
+            quarter,
+            year
+        )
+        
 
-        # --- Validate Year ---
-        if not year_str or not year_str.isdigit():
-            return JsonResponse({"error": "Valid Year parameter is required"}, status=400)
-        year = int(year_str)
-
-        # --- Validate Quarter ---
-        valid_quarters = ["first", "second", "third", "fourth", "six", "nine", "year"]
-        if quarter and quarter.lower() not in valid_quarters:
-            return JsonResponse(
-                {"error": f"Invalid quarter. Choose from: {', '.join(valid_quarters)}"},
-                status=400,
-            )
-        quarter = quarter.lower() if quarter else None
-
-        # --- Filter setup ---
-        annual_kpi_filter = Q(year=year)
-        summary_filter = Q(year=year)
-        report_title_qualifier = ""
-
-        if not sector_param and not division_param:
-            if getattr(user, "is_superadmin", False):
-                report_title_qualifier = "ኢትዮጵያ አርቴፊሻል ኢንተለጀንስ ኢንስቲትዩት"
-            elif getattr(user, "monitoring_id", None):
-                report_title_qualifier = "ኢትዮጵያ አርቴፊሻል ኢንተለጀንስ ኢንስቲትዩት"
-            elif getattr(user, "sector_id", None):
-                summary_filter &= Q(sector_id=user.sector_id.id)
-                annual_kpi_filter &= Q(kpi__main_goal_id__sector_id=user.sector_id.id)
-                report_title_qualifier = user.sector_id.name
-            elif getattr(user, "division_id", None):
-                summary_filter &= Q(division_id=user.division_id.id)
-                annual_kpi_filter &= Q(division_id=user.division_id.id)
-                report_title_qualifier = user.division_id.name
-            else:
-                return JsonResponse(
-                    {"error": "You do not have permission to view this data."}, status=403
-                )
-
-        # --- Fetch Data ---
         annual_kpis_queryset = (
             AnnualKPI.objects.filter(annual_kpi_filter)
             .select_related(
@@ -1301,14 +1366,8 @@ class GenerateReportDocument(APIView):
                 "annual_unit_id",
                 "division_id",
                 "initial_unit_id",
-                "pl1_unit_id",
-                "pl2_unit_id",
-                "pl3_unit_id",
-                "pl4_unit_id",
-                "pr1_unit_id",
-                "pr2_unit_id",
-                "pr3_unit_id",
-                "pr4_unit_id",
+                "pl1_unit_id", "pl2_unit_id", "pl3_unit_id", "pl4_unit_id",
+                "pr1_unit_id", "pr2_unit_id", "pr3_unit_id", "pr4_unit_id",
             )
             .prefetch_related(
                 Prefetch(
@@ -1316,9 +1375,7 @@ class GenerateReportDocument(APIView):
                     queryset=KPIDescription.objects.prefetch_related(
                         Prefetch(
                             "description",
-                            queryset=Description.objects.prefetch_related(
-                                "description_photo"
-                            ),
+                            queryset=Description.objects.prefetch_related("description_photo"),
                         )
                     ),
                 )
@@ -1329,7 +1386,8 @@ class GenerateReportDocument(APIView):
                 "kpi__name",
             )
         )
-
+        
+ 
         summaries_queryset = (
             Summary.objects.filter(summary_filter)
             .prefetch_related(
@@ -1341,14 +1399,15 @@ class GenerateReportDocument(APIView):
             )
             .order_by("type", "id")
         )
-
+        
         if not annual_kpis_queryset.exists() and not summaries_queryset.exists():
             return JsonResponse(
-                {"error": f"No data found for Year {year}."}, status=404
+                {"error": f"No data found for Year {year}" + (f" and Quarter {quarter}" if quarter else "")}, 
+                status=404
             )
-
-        # --- Create Document ---
+      
         doc = Document()
+        
 
         try:
             system_setting = SystemSetting.objects.first()
@@ -1356,61 +1415,116 @@ class GenerateReportDocument(APIView):
         except Exception as e:
             print(f"Could not load system settings: {e}")
             logo_path = None
-
-        # --- Document Layout ---
+        
         section = doc.sections[0]
         section.top_margin = Inches(1)
         section.bottom_margin = Inches(1)
-
+        
         if logo_path and os.path.exists(logo_path):
             img_p = doc.add_paragraph()
             add_picture_to_run(img_p.add_run(), logo_path, width=Inches(2))
-            img_p.alignment = 1  # Center
+            img_p.alignment = 1
+        
 
-        quarter_display_names = {
-            "first": "የመጀመሪያ ሩብ ዓመት",
-            "second": "የሁለተኛ ሩብ ዓመት",
-            "third": "የሶስተኛ ሩብ ዓመት",
-            "fourth": "የአራተኛ ሩብ ዓመት",
-            "six": "የ 6 ወር",
-            "nine": "የ 9 ወር",
-            "year": "ዓመታዊ",
-        }
-        quarter_name = quarter_display_names.get(quarter or "year", "ዓመታዊ")
-
-        title_text = f"{report_title_qualifier} የ {year} በጀት ዓመት {quarter_name} የልማት ዕቅድ አፈፃፀም ሪፖርት"
+        title_text = f"{org_name} {org_type} የ {year} በጀት ዓመት {quarter_name} የወንበል ፍጅት አፈፃፀም ሪፖርት"
         title_p = doc.add_paragraph(title_text)
         set_paragraph_style(title_p, font_size=Pt(14), bold=True, alignment=1)
-
+        
         doc.add_page_break()
+        
+    
+        if summaries_queryset.exists():
+            summary_heading = doc.add_paragraph("የስራ ማጠቃለያ")
+            set_paragraph_style(summary_heading, font_size=Pt(14), bold=True)
+            
+            for summary in summaries_queryset:
+       
+                if summary.title:
+                    title_para = doc.add_paragraph(summary.title)
+                    set_paragraph_style(title_para, font_size=Pt(13), bold=True)
+                
+    
+                if summary.description:
+                    desc_para = doc.add_paragraph(summary.description)
+                    set_paragraph_style(desc_para, font_size=Pt(12))
+                
+        
+                for summary_file in summary.summary_files.all():
+                    if summary_file.photos and os.path.exists(summary_file.photos.path):
+                        img_para = doc.add_paragraph()
+                        add_picture_to_run(img_para.add_run(), summary_file.photos.path, width=Inches(5))
+                        img_para.alignment = 1
+                
+      
+                for subtitle in summary.summary_subtitle.all():
+                    if subtitle.subtitle:
+                        sub_para = doc.add_paragraph(subtitle.subtitle)
+                        set_paragraph_style(sub_para, font_size=Pt(12), bold=True)
+                    
+                    if subtitle.description:
+                        sub_desc_para = doc.add_paragraph(subtitle.description)
+                        set_paragraph_style(sub_desc_para, font_size=Pt(11))
+                    
+                    for photo in subtitle.summary_photo.all():
+                        if photo.photos and os.path.exists(photo.photos.path):
+                            photo_para = doc.add_paragraph()
+                            add_picture_to_run(photo_para.add_run(), photo.photos.path, width=Inches(4))
+                            photo_para.alignment = 1
+            
+            doc.add_page_break()
+        
+        if annual_kpis_queryset.exists():
+            kpi_desc_heading = doc.add_paragraph("የስራ አፈፃፀም መግለጫዎች")
+            set_paragraph_style(kpi_desc_heading, font_size=Pt(14), bold=True)
+            
+            for annual_kpi in annual_kpis_queryset:
+                kpi_descriptions = annual_kpi.kpidescription.all()
+                
+                if kpi_descriptions.exists():
+                    for kpi_desc in kpi_descriptions:
+                        kpi_heading = doc.add_paragraph(annual_kpi.kpi.name)
+                        set_paragraph_style(kpi_heading, font_size=Pt(13), bold=True)
+                        
 
-        # --- Generate KPI Table ---
-        generate_kpi_performance_table(doc, request)
+                        for desc in kpi_desc.description.all():
+                            if desc.description:
+                                desc_para = doc.add_paragraph(desc.description)
+                                set_paragraph_style(desc_para, font_size=Pt(12))
+                            
+                            for photo in desc.description_photo.all():
+                                if photo.photos and os.path.exists(photo.photos.path):
+                                    photo_para = doc.add_paragraph()
+                                    add_picture_to_run(photo_para.add_run(), photo.photos.path, width=Inches(4))
+                                    photo_para.alignment = 1
+            
+            doc.add_page_break()
+        
 
-        # --- Save and Convert ---
+        generate_kpi_performance_table(doc, request, filters)
+        
+ 
         try:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp_file:
                 temp_path = tmp_file.name
                 doc.save(temp_path)
-
+            
             doc_dir = os.path.join(settings.MEDIA_ROOT, "documents")
             os.makedirs(doc_dir, exist_ok=True)
-
-            safe_qualifier = re.sub(r"\W+", "_", report_title_qualifier)
+            
+            safe_qualifier = re.sub(r"\W+", "_", org_name)
             base_filename = f"{year}_{quarter or 'annual'}_{safe_qualifier}_report"
             docx_filename = f"{base_filename}.docx"
             pdf_filename = f"{base_filename}.pdf"
-
+            
             docx_rel = os.path.join("documents", docx_filename)
             pdf_rel = os.path.join("documents", pdf_filename)
             docx_full = os.path.join(doc_dir, docx_filename)
             pdf_full = os.path.join(doc_dir, pdf_filename)
-
+            
             with open(temp_path, "rb") as f:
                 default_storage.save(docx_rel, f)
             os.remove(temp_path)
-
-            # Convert DOCX → PDF via LibreOffice
+            
             actual_docx_path = default_storage.path(docx_rel)
             subprocess.run(
                 [
@@ -1426,8 +1540,7 @@ class GenerateReportDocument(APIView):
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
-
-            # --- Response ---
+            
             return JsonResponse(
                 {
                     "message": "Document saved successfully",
@@ -1436,375 +1549,273 @@ class GenerateReportDocument(APIView):
                 },
                 status=200,
             )
-
+        
         except subprocess.CalledProcessError as e:
             print(f"LibreOffice conversion failed: {e}")
-            traceback.print_exc()
             return JsonResponse({"error": f"LibreOffice conversion failed: {e}"}, status=500)
         except Exception as e:
             print(f"Error during document saving/conversion: {e}")
+            import traceback
             traceback.print_exc()
             return JsonResponse({"error": str(e)}, status=500)
 
-def generate_kpi_performance_table(doc,request):
-        unit_lookup = {}
-        user = request.user
-        
+def generate_kpi_performance_table(doc, request, filters=None):
+    """Generate KPI performance table with correct indexing"""
+    
 
-        year = request.GET.get('year')
-        quarter = request.GET.get('quarter')
-        sector = request.GET.get('sector')
-        division = request.GET.get('division')
-        
-        if not year:
-            return JsonResponse({"error": "Year is required"}, status=400)
+    if filters is None:
+        filters, error = build_filters(request)
+        if error:
+            return
+    
+    user = request.user
+    year = filters['year']
+    quarter = filters['quarter']
+    annual_kpi_filter = filters['annual_kpi_filter']
+    
 
-        
-        sector_names = []
-        division_names = []
-        
-        if not sector and not division:
-            if user.is_superuser or user.monitoring_id:
-                sector_filter = Q()
-                division_filter = Q()
-            elif user.sector_id:
-                sector_filter = Q(kpi__main_goal_id__sector_id=user.sector_id)
-                division_filter = Q()
-                sector_names = list(Sector.objects.filter(id=user.sector_id.id).values_list('name', flat=True))
-                sector_names = list(Sector.objects.filter(id=user.sector_id.id).values_list('name', flat=True))
-                division_names = []
-            elif user.division_id:
-                division_filter = Q(division_id=user.division_id)
-                sector_filter = Q()
-                division_names = list(Division.objects.filter(id=user.division_id.id).values_list('name', flat=True))
-                division_names = list(Division.objects.filter(id=user.division_id.id).values_list('name', flat=True))
-                sector_names = []
-        else:
-            if sector:
-                sector_names = list(Sector.objects.filter(id__in=sector).values_list('name', flat=True))
-                sector_filter = Q(kpi__main_goal_id__sector_id__in=sector) 
-                division_filter = Q()
-            if division:
-                division_names = list(Division.objects.filter(id__in=division).values_list('name', flat=True))
-                division_filter = Q(division_id__in=division) 
-                sector_filter = Q()
-            
+    org_name, org_type, quarter_name = get_filter_display_name(
+        user,
+        filters['sector_param'],
+        filters['division_param'],
+        quarter,
+        year
+    )
+    
+ 
+    filtered_kpis = AnnualKPI.objects.filter(annual_kpi_filter).select_related(
+        'kpi', 'kpi__main_goal_id', 'kpi__main_goal_id__strategic_goal_id',
+        'measure', 'division_id'
+    )
+    
+    if not filtered_kpis.exists():
+        return
+    
+    merged_kpis = merge_annual_kpis(filtered_kpis)
+    
+  
+    title_text = f"የ {year} በጀት ዓመት {quarter_name} የ {org_name} {org_type} የስራ ስራ ፍጅት አፈፃፀም"
+    p = doc.add_paragraph(title_text)
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+ 
+    table = doc.add_table(rows=2, cols=7)
+    table.style = 'Table Grid'
+    table.autofit = False
+    
+   
+    hdr_cells = table.rows[0].cells
+    hdr_cells[0].text = 'ተ.ቁ'
+    hdr_cells[1].text = 'ስትራተጂክ ፍጣች፣ ስራ ስራ ተግባራት እና ውጤት ሑለት የአፈፃፀም አመልካቶች'
+    hdr_cells[2].text = 'መለኪያ'
+    hdr_cells[3].text = 'እስከ ' + str(int(year) - 1) + ' አፈፃፀም መንሻ'
+    
+    merged_report = hdr_cells[4].merge(hdr_cells[5]).merge(hdr_cells[6])
+    merged_report.text = f"የ {year} በጀት ዓመት {quarter_name} የስራ ስራ ፍጣች አፈፃፀም"
+    
+    sub_hdr_cells = table.rows[1].cells
+    sub_hdr_cells[4].text = 'ፈፅብ'
+    sub_hdr_cells[5].text = 'አፈፃፀም'
+    sub_hdr_cells[6].text = 'አፈፃፀም በመቶኛ'
+    
+    hdr_cells[0].merge(sub_hdr_cells[0])
+    hdr_cells[1].merge(sub_hdr_cells[1])
+    hdr_cells[2].merge(sub_hdr_cells[2])
+    hdr_cells[3].merge(sub_hdr_cells[3])
+    
+    for row in [table.rows[0], table.rows[1]]:
+        for cell in row.cells:
+            cell._tc.get_or_add_tcPr().append(
+                parse_xml(r'<w:shd {} w:fill="110d7c"/>'.format(nsdecls('w')))
+            )
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    run.font.bold = True
+                    run.font.name = 'Ebrima'
+                    run.font.color.rgb = RGBColor(255, 188, 20)
+    
 
-        year_filter = Q(year=year)
-        filtered_kpis = AnnualKPI.objects.filter(year_filter & sector_filter & division_filter)
-        filtered_kpis = merge_annual_kpis(filtered_kpis)
+    strategic_goals = {}
+    for kpi in merged_kpis:
+        strategic_goal = kpi.kpi.main_goal_id.strategic_goal_id
+        main_activity = kpi.kpi.main_goal_id
         
+        if strategic_goal not in strategic_goals:
+            strategic_goals[strategic_goal] = {}
+        if main_activity not in strategic_goals[strategic_goal]:
+            strategic_goals[strategic_goal][main_activity] = []
         
-        
-        if not filtered_kpis:
-            if sector:
-                return JsonResponse(
-                    {"error": f"No KPI found for year {year}, quarter {quarter}, sector {', '.join(sector_names)}"},
-                    status=404,
-                )
-            
-            elif division:
-                return JsonResponse(
-                    {"error": f"No KPI found for year {year}, quarter {quarter}, and division {', '.join(division_names)}"},
-                    status=404,
-                )
-            elif quarter:
-                return JsonResponse(
-                    {"error": f"No KPI found for year {year} and quarter {quarter}"},
-                    status=404,
-                )
-            else:
-                return JsonResponse({"error": f"No KPI found for year {year}"}, status=404)
-        
-        quarter_fields = {
-            'first': ('pl1', 'pr1', 'pl1_unit_id', 'pr1_unit_id', 'initial', 'initial_unit_id', 'measure'),
-            'second': ('pl2', 'pr2', 'pl2_unit_id', 'pr2_unit_id', 'initial', 'initial_unit_id', 'measure'),
-            'third': ('pl3', 'pr3', 'pl3_unit_id', 'pr3_unit_id', 'initial', 'initial_unit_id', 'measure'),
-            'fourth': ('pl4', 'pr4', 'pl4_unit_id', 'pr4_unit_id', 'initial', 'initial_unit_id', 'measure'),
-            'six': [
-                ('pl1', 'pr1', 'pl1_unit_id', 'pr1_unit_id', 'initial', 'initial_unit_id', 'measure'), 
-                ('pl2', 'pr2', 'pl2_unit_id', 'pr2_unit_id', 'initial', 'initial_unit_id', 'measure')
-                ],
-            'nine': [
-                    ('pl1', 'pr1', 'pl1_unit_id', 'pr1_unit_id', 'initial', 'initial_unit_id', 'measure'), 
-                    ('pl2', 'pr2', 'pl2_unit_id', 'pr2_unit_id', 'initial', 'initial_unit_id', 'measure'),
-                    ('pl3', 'pr3', 'pl3_unit_id', 'pr3_unit_id', 'initial', 'initial_unit_id', 'measure')
-                    ],
-            'year': [
-                    ('pl1', 'pr1', 'pl1_unit_id', 'pr1_unit_id', 'initial', 'initial_unit_id', 'measure'), 
-                    ('pl2', 'pr2', 'pl2_unit_id', 'pr2_unit_id', 'initial', 'initial_unit_id', 'measure'),
-                    ('pl3', 'pr3', 'pl3_unit_id', 'pr3_unit_id', 'initial', 'initial_unit_id', 'measure'),
-                    ('pl4', 'pr4', 'pl4_unit_id', 'pr4_unit_id', 'initial', 'initial_unit_id', 'measure')
-                    ]
-        }
+        strategic_goals[strategic_goal][main_activity].append(kpi)
+    
 
-        if quarter and quarter not in quarter_fields:
-            raise ValueError(f"Invalid quarter value: {quarter}")
+    strategic_number = 0
+    for strategic_goal, main_activities in strategic_goals.items():
+        strategic_number += 1
         
-        quarter = quarter.lower()
-        if quarter == 'first':
-            data = "የመጀመሪያ ሩብ ዓመት"
-        elif quarter == 'second':
-            data = "የሁለተኛ ሩብ ዓመት"
-        elif quarter == 'third':
-            data = "የሶስተኛ ሩብ ዓመት"
-        elif quarter == 'fourth':
-            data = "የአራተኛ ሩብ ዓመት"
-        elif quarter == 'six':
-            data = "የ 6 ወር "
-        elif quarter == 'nine':
-            data = "የ 9 ወር"
-        elif quarter == 'year':
-            data = " "
-            
-        name = " "
-        organ = ""
-        if sector_names:
-            name = sector_names
-            organ = "ሴክተር"
-            
-        elif division_names:
-            name = division_names
-            organ = "ድቪዝን"
-        else:
-            name = "አርቴፊሻል ኢንተልጀንስ ኢንስቲትዩት"
+  
+        row = table.add_row().cells
+        row[0].text = f"{strategic_number}"
+        row[1].merge(row[6])
+        row[1].text = strategic_goal.name
         
-
+   
+        set_cell_bg_color(row[0], 'ffbc14')
+        set_cell_bg_color(row[1], 'ffbc14')
+        set_cell_text_color(row[0], RGBColor(17, 13, 124))
+        set_cell_text_color(row[1], RGBColor(17, 13, 124))
         
-        # Create a table with 2 rows and 5 columns
-        p = doc.add_paragraph( " የ "+ year + " በጀት ዓመት " + data + " የ "+" " .join(name) + " " + organ + " የዋና ዋና ግቦች አፈጻጸም ")
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        table = doc.add_table(rows=2, cols=7)
-        table.style = 'Table Grid'
-        table.autofit = False 
-        
-      
-
-        # First row (main headers)
-        hdr_cells = table.rows[0].cells
-        hdr_cells[0].text = 'ተ.ቁ '
-        hdr_cells[1].text = 'ስትራቴጂክ ግቦች፣ ዋና ዋና ተግባራት እና ዝርዝር ቁልፍ የአፈፃፀም አመልካቾች '
-        hdr_cells[2].text = 'መለክያ'
-        hdr_cells[3].text = 'እስከ ' + str(int(year) - 1) + ' አፈጻጸም መነሻ '
-
-        # Merge columns 3, 4, and 5 in the first row and set the text to "Report"
-        merged_report = hdr_cells[4].merge(hdr_cells[5]).merge(hdr_cells[6])
-        merged_report.text = " የ "+ year + " በጀት ዓመት " + data  + " የዋና ዋና ግቦች አፈጻጸም "
-
-        # Second row (sub-headers)
-        sub_hdr_cells = table.rows[1].cells
-        sub_hdr_cells[4].text = 'ግብ '
-        sub_hdr_cells[5].text = 'አፈጻጸም'
-        sub_hdr_cells[6].text = 'አፈጻጸም በመቶኛ'
-
-        # Merge first two columns to span both rows
-        hdr_cells[0].merge(sub_hdr_cells[0])
-        hdr_cells[1].merge(sub_hdr_cells[1])
-        hdr_cells[2].merge(sub_hdr_cells[2])
-        
-       # Background fill color for header and subheader cells
-        for row in [table.rows[0], table.rows[1]]:
-            for cell in row.cells:
-                cell._tc.get_or_add_tcPr().append(
-                    parse_xml(r'<w:shd {} w:fill="110d7c"/>'.format(nsdecls('w')))
-                )
-                # Set font color to orange
-                for paragraph in cell.paragraphs:
-                    for run in paragraph.runs:
-                        run.font.bold = True
-                        run.font.name = 'Ebrima'
-                        run.font.color.rgb = RGBColor(255, 188, 20)  # Orange
-        strategic_goals = {}
-        for kpis in filtered_kpis:
-            strategic_goal = kpis.kpi.main_goal_id.strategic_goal_id
-            main_activity = kpis.kpi.main_goal_id
-            
-            if strategic_goal not in strategic_goals:
-                strategic_goals[strategic_goal] = {}
-            if main_activity not in strategic_goals[strategic_goal]:
-                strategic_goals[strategic_goal][main_activity] = []
-            
-            strategic_goals[strategic_goal][main_activity].append(kpis)
-        strategic_number = 0
-        for strategic_goal, main_activities in strategic_goals.items():
-            strategic_number += 1
+        main_activity_number = 0
+        for main_activity, kpis in main_activities.items():
+            main_activity_number += 1
             row = table.add_row().cells
-            row[0].text = f"{strategic_number}"
+            row[0].text = f"{strategic_number}.{main_activity_number}"
             row[1].merge(row[6])
-            row[1].text = strategic_goal.name
-            def set_cell_bg_color(cell, color):
-                shading_elm = cell._element.get_or_add_tcPr()
-                shading = OxmlElement('w:shd')
-                shading.set(qn('w:fill'), color)  # Set background color
-                shading_elm.append(shading)
-            def set_cell_text_color(cell, color):
-                for paragraph in cell.paragraphs:
-                    for run in paragraph.runs:
-                        run.font.name = 'Ebrima'
-                        run.font.color.rgb = color
-            set_cell_text_color(row[0], RGBColor(17, 13, 124))  # "#110d7c"
-            set_cell_text_color(row[1], RGBColor(17, 13, 124))  # "#110d7c"
-            # Apply light orange background to both cells
-            set_cell_bg_color(row[0], 'ffbc14')
-            set_cell_bg_color(row[1], 'ffbc14')
+            row[1].text = main_activity.name
+            
+            set_cell_bg_color(row[0], 'D3D3D3')
+            set_cell_bg_color(row[1], 'D3D3D3')
+            set_cell_text_style(row[0])
+            set_cell_text_style(row[1])
+            
+            kpi_number = 0
+            for kp in kpis:
+                kpi_number += 1
                 
-            main_activity_number = 0
-            for main_activity, kps in main_activities.items():
-                main_activity_number += 1
+                quarter_fields = get_quarter_fields(quarter)
+                total_plan, total_perf, symbol, init_base_unit = calculate_kpi_totals(
+                    kp, quarter_fields
+                )
+                
+                perf_percent = (total_perf / total_plan * 100) if total_plan > 0 else 0
+                perf_percent = round(perf_percent, 2)
+                
                 row = table.add_row().cells
-                row[0].text = f"{strategic_number}.{main_activity_number}"
-                row[1].merge(row[6])
-                row[1].text = main_activity.name
-                def set_cell_bg_color(cell, color):
-                    shading_elm = cell._element.get_or_add_tcPr()
-                    shading = OxmlElement('w:shd')
-                    shading.set(qn('w:fill'), color)  # Set background color
-                    shading_elm.append(shading)
-                def set_cell_text_style(cell):
-                    for paragraph in cell.paragraphs:
-                        for run in paragraph.runs:
-                            run.font.name = 'Ebrima'
-
-                set_cell_text_style(row[0])
-                set_cell_text_style(row[1])
-
-                # Apply gray background to both cells
-                set_cell_bg_color(row[0], 'D3D3D3')  # Gray color
-                set_cell_bg_color(row[1], 'D3D3D3')  # Gray color
+                row[0].text = f"{strategic_number}.{main_activity_number}.{kpi_number}"
+                row[1].text = kp.kpi.name
+                row[2].text = f"{kp.measure}"
+                row[3].text = f"{round(init_base_unit, 2)}{symbol}"
+                row[4].text = f"{round(total_plan, 2)}{symbol}"
+                row[5].text = f"{round(total_perf, 2)}{symbol}"
+                row[6].text = f"{perf_percent:.2f}%"
                 
-                for kp in kps:
-                    if quarter is not None and quarter in quarter_fields:
-                        fields = quarter_fields[quarter]
-                    else:
-                        fields = quarter_fields['yearly']
-                    # Ensure fields is always a list of tuples
-                    if isinstance(fields, tuple):  
-                        fields = [fields]  # Convert single tuple into a list with one tuple
-                        
-                    print("These are fields:",fields)
-                    total_plan = 0
-                    total_perf = 0
+                for cell in row:
+                    set_cell_text_style(cell)
                     
-                    kpi_number = 0
-                    for pl, pr, pl_unit, pr_unit, initial, initial_unit, measure in fields:
-                        kpi_number += 1
-                        plan = getattr(kp, pl, 0) or 0
-                        performance = getattr(kp, pr, 0) or 0
-                        plan_unit = getattr(kp, pl_unit, None)
-                        print("Plan unit:",plan_unit)
-                        performance_unit = getattr(kp, pr_unit, None)
-                        print("Performance unit:",performance_unit)
-                        initial_value = getattr(kp, initial, 0) or 0
-                        initial_unit = getattr(kp, initial_unit, None)
-                        print("Initial unit:",initial_unit)
-                        measure = getattr(kp, measure, None)
-                        
-                        if measure not in unit_lookup:
-                            base_unit = Unit.objects.filter(measure_id=measure, isBaseUnit=True).first()
-                            unit_lookup[measure] = base_unit
-                        
-                        base_unit = unit_lookup[measure]
-                        symbol = base_unit.symbol if base_unit.symbol else " "
+def get_quarter_fields(quarter):
+    """Return the appropriate fields for the given quarter"""
+    quarter_fields = {
+        'first': [('pl1', 'pr1', 'pl1_unit_id', 'pr1_unit_id', 'initial', 'initial_unit_id', 'measure')],
+        'second': [('pl2', 'pr2', 'pl2_unit_id', 'pr2_unit_id', 'initial', 'initial_unit_id', 'measure')],
+        'third': [('pl3', 'pr3', 'pl3_unit_id', 'pr3_unit_id', 'initial', 'initial_unit_id', 'measure')],
+        'fourth': [('pl4', 'pr4', 'pl4_unit_id', 'pr4_unit_id', 'initial', 'initial_unit_id', 'measure')],
+        'six': [
+            ('pl1', 'pr1', 'pl1_unit_id', 'pr1_unit_id', 'initial', 'initial_unit_id', 'measure'),
+            ('pl2', 'pr2', 'pl2_unit_id', 'pr2_unit_id', 'initial', 'initial_unit_id', 'measure')
+        ],
+        'nine': [
+            ('pl1', 'pr1', 'pl1_unit_id', 'pr1_unit_id', 'initial', 'initial_unit_id', 'measure'),
+            ('pl2', 'pr2', 'pl2_unit_id', 'pr2_unit_id', 'initial', 'initial_unit_id', 'measure'),
+            ('pl3', 'pr3', 'pl3_unit_id', 'pr3_unit_id', 'initial', 'initial_unit_id', 'measure')
+        ],
+        'year': [
+            ('pl1', 'pr1', 'pl1_unit_id', 'pr1_unit_id', 'initial', 'initial_unit_id', 'measure'),
+            ('pl2', 'pr2', 'pl2_unit_id', 'pr2_unit_id', 'initial', 'initial_unit_id', 'measure'),
+            ('pl3', 'pr3', 'pl3_unit_id', 'pr3_unit_id', 'initial', 'initial_unit_id', 'measure'),
+            ('pl4', 'pr4', 'pl4_unit_id', 'pr4_unit_id', 'initial', 'initial_unit_id', 'measure')
+        ]
+    }
+    return quarter_fields.get(quarter or 'year', quarter_fields['year'])
 
-                        plan_base_unit = plan * plan_unit.conversionFactor if plan_unit else 0
-                        perf_base_unit = performance * performance_unit.conversionFactor if performance_unit else 0
-                        init_base_unit = initial_value * initial_unit.conversionFactor if initial_unit else 0
+def calculate_kpi_totals(kp, quarter_fields):
+    """Calculate total plan and performance for a KPI based on quarter"""
+    unit_lookup = {}
+    total_plan = 0
+    total_perf = 0
+    symbol = ""
+    init_base_unit = 0
+    
+    for pl, pr, pl_unit, pr_unit, initial, initial_unit, measure in quarter_fields:
+        plan = getattr(kp, pl, 0) or 0
+        performance = getattr(kp, pr, 0) or 0
+        plan_unit_obj = getattr(kp, pl_unit, None)
+        performance_unit_obj = getattr(kp, pr_unit, None)
+        initial_value = getattr(kp, initial, 0) or 0
+        initial_unit_obj = getattr(kp, initial_unit, None)
+        measure_obj = getattr(kp, measure, None)
+        
+        if measure_obj and measure_obj not in unit_lookup:
+            base_unit = Unit.objects.filter(measure_id=measure_obj, isBaseUnit=True).first()
+            unit_lookup[measure_obj] = base_unit
+        
+        base_unit = unit_lookup.get(measure_obj)
+        symbol = base_unit.symbol if base_unit and base_unit.symbol else ""
+        
+        plan_base_unit = plan * plan_unit_obj.conversionFactor if plan_unit_obj else 0
+        perf_base_unit = performance * performance_unit_obj.conversionFactor if performance_unit_obj else 0
+        init_base_unit = initial_value * initial_unit_obj.conversionFactor if initial_unit_obj else 0
+        
+        total_plan += plan_base_unit
+        total_perf += perf_base_unit
+    
+    if kp.operation == "average":
+        num_quarters = len(quarter_fields)
+        total_plan = total_plan / num_quarters if num_quarters > 0 else 0
+        total_perf = total_perf / num_quarters if num_quarters > 0 else 0
+    
+    return total_plan, total_perf, symbol, init_base_unit
 
-                        total_plan += plan_base_unit
-                        total_perf += perf_base_unit
-                    if kp.operation == "sum":
-                        perf_percent = (total_perf / total_plan) * 100 if total_plan > 0 else 0
-                    elif kp.operation == "average":
-                        total_perf = total_perf/4
-                        total_plan = total_plan/4
-                        perf_percent = (total_perf/total_plan) * 100 if total_plan > 0 else 0
 
-                    # ✅ Only round, no clamping
-                    perf_percent = round(perf_percent, 2)   # round to 2 decimals (or 0 if you want integer)
-                    total_plan = round(total_plan,2)
-                    total_perf = round(total_perf, 2)
-
-
-
-                    def set_cell_text_style(cell):
-                        for paragraph in cell.paragraphs:
-                            for run in paragraph.runs:
-                                run.font.name = 'Ebrima'
-
-                    row = table.add_row().cells
-                    row[0].text = f"{strategic_number}.{main_activity_number}.{kpi_number}"
-                    row[1].text = kp.kpi.name
-                    row[2].text = f"{kp.measure}"
-                    row[3].text = f"{init_base_unit}{symbol}"
-                    row[4].text = f"{total_plan}{symbol}"
-                    row[5].text = f"{total_perf}{symbol}"
-                    row[6].text = f"{perf_percent:.2f}%"
-                    set_cell_text_style(row[0])  # Gray color
-                    set_cell_text_style(row[1])  # Gray color
-                    set_cell_text_style(row[2])  # Gray color
-                    set_cell_text_style(row[3])  # Gray color
-                    set_cell_text_style(row[4])  # Gray color
-                    set_cell_text_style(row[5])  # Gray color
-                    set_cell_text_style(row[6])  # Gray color
-
-# @api_view(['GET'])
-# def filter_and_generate_kpi_report(request):
-#     pythoncom.CoInitialize()
-#     try:
-#         doc = Document()
-#         generate_kpi_performance_table(doc,request)
-#         with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp_file:
-#             temp_path = tmp_file.name
-#             doc.save(temp_path)
-
-#         docx_filename = os.path.basename(temp_path)
-#         docx_file_path = os.path.join(settings.MEDIA_ROOT, 'documents', docx_filename)
-#         pdf_file_path = os.path.join(settings.MEDIA_ROOT, 'documents', docx_filename.replace(".docx", ".pdf"))
-#         os.makedirs(os.path.dirname(docx_file_path), exist_ok=True)
-#         default_storage.save(docx_file_path, open(temp_path, 'rb'))
-#         convert(docx_file_path, pdf_file_path)
-#         os.remove(temp_path)
-
-#         pdfpath = os.path.basename(pdf_file_path)
-#         docpath = os.path.basename(docx_file_path)
-#         return JsonResponse({
-#             "message": "Document saved",
-#             "docx_file_path": f"http://127.0.0.1:8000/media/documents/{docpath}",
-#             "pdf_file_path": f"http://127.0.0.1:8000/media/documents/{pdfpath}"
-#         }, status=200)
-#     finally:
-#         pythoncom.CoUninitialize()
-
+def set_cell_bg_color(cell, color):
+    """Set background color for a cell"""
+    shading_elm = cell._element.get_or_add_tcPr()
+    shading = OxmlElement('w:shd')
+    shading.set(qn('w:fill'), color)
+    shading_elm.append(shading)
+    
+def set_cell_text_color(cell, color):
+    """Set text color for a cell"""
+    for paragraph in cell.paragraphs:
+        for run in paragraph.runs:
+            run.font.name = 'Ebrima'
+            run.font.color.rgb = color
+            
+def set_cell_text_style(cell):
+    """Set standard text style for a cell"""
+    for paragraph in cell.paragraphs:
+        for run in paragraph.runs:
+            run.font.name = 'Ebrima'
+            
 @api_view(['GET'])
 def filter_and_generate_kpi_report(request):
+    """Generate standalone KPI report table"""
     try:
-        # --- Create the document ---
         doc = Document()
-        generate_kpi_performance_table(doc, request)
-
-        # --- Save to temporary DOCX ---
+        
+        filters, error = build_filters(request)
+        if error:
+            return JsonResponse({"error": error}, status=400)
+        
+        generate_kpi_performance_table(doc, request, filters)
+        
         with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp_file:
             temp_docx_path = tmp_file.name
             doc.save(temp_docx_path)
+        
 
-        # --- Prepare directories ---
         media_dir = os.path.join(settings.MEDIA_ROOT, "documents")
         os.makedirs(media_dir, exist_ok=True)
-
-        # --- Sanitize filename ---
-        base_filename = "kpi_performance_report"
-        safe_filename = re.sub(r'\W+', '_', base_filename)
-        docx_filename_final = f"{safe_filename}.docx"
-        pdf_filename_final = f"{safe_filename}.pdf"
-
+        
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        user_id = request.user.id
+        base_filename = f"kpi_report_{timestamp}_{user_id}"
+        docx_filename_final = f"{base_filename}.docx"
+        pdf_filename_final = f"{base_filename}.pdf"
+        
         final_docx_path = os.path.join(media_dir, docx_filename_final)
-        final_pdf_path = os.path.join(media_dir, pdf_filename_final)
-
-        # --- Save DOCX into MEDIA folder ---
+        
         with open(temp_docx_path, "rb") as f_read:
             default_storage.save(os.path.join("documents", docx_filename_final), f_read)
-
-        # --- Convert DOCX to PDF using LibreOffice headless mode ---
+        
         try:
             subprocess.run([
                 "libreoffice",
@@ -1812,24 +1823,24 @@ def filter_and_generate_kpi_report(request):
                 "--convert-to", "pdf",
                 "--outdir", media_dir,
                 final_docx_path
-            ], check=True)
+            ], check=True, timeout=60)
         except subprocess.CalledProcessError as e:
             return JsonResponse({"error": f"LibreOffice conversion failed: {e}"}, status=500)
-
-        # --- Cleanup temp DOCX file ---
+        except subprocess.TimeoutExpired:
+            return JsonResponse({"error": "PDF conversion timed out"}, status=500)
+        
         os.remove(temp_docx_path)
-
-        # --- Construct response paths ---
-        doc_url_base = "http://127.0.0.1:8000/media/documents/"
+        
+        doc_url_base = request.build_absolute_uri('/media/documents/')
         docx_url = doc_url_base + docx_filename_final
         pdf_url = doc_url_base + pdf_filename_final
-
+        
         return JsonResponse({
-            "message": "Document saved successfully",
+            "message": "Document generated successfully",
             "docx_file_path": docx_url,
             "pdf_file_path": pdf_url
         }, status=200)
-
+    
     except Exception as e:
         import traceback
         traceback.print_exc()
