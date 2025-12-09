@@ -1,6 +1,6 @@
 const ServerUrl = {
-  BASE_URL: "http://196.188.240.102:4020/",
-  WS_BASE_URL: "ws://196.188.240.102:4020/",
+  BASE_URL: import.meta.env.VITE_BASE_URL,
+  WS_BASE_URL: import.meta.env.VITE_WS_BASE_URL,
 };
 
 export default ServerUrl;

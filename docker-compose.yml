@@ -3,7 +3,7 @@ version: "3.9"
 services:
 
   # ------------------
-  # Django Backend
+  # Django Backend0
   # ------------------
   backend:
     build: ./backend
@@ -12,6 +12,7 @@ services:
       - "4020:8000"
     volumes:
       - ./backend:/app
+      - ./backend/media:/app/media
     environment:
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
@@ -27,13 +28,15 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile  # production Dockerfile with Nginx
+      dockerfile: Dockerfile # production Dockerfile with Nginx
     container_name: react-frontend
     ports:
-      - "4021:80"  # Nginx serves on 80 internally
+      - "4021:80" # Nginx serves on 80 internally
     depends_on:
       - backend
     restart: unless-stopped
+    volumes:
+      - ./backend/media:/app/media
     networks:
       - prms_network
 

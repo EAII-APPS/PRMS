@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # 'rest_framework_simplejwt.token_blacklist',
     # third party libraries
     'rest_framework',
     'rest_framework_simplejwt',
@@ -68,7 +69,7 @@ INSTALLED_APPS = [
 ]
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=5),  # Change this to your desired expiration time
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Change this to your desired expiration time
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # Change this to your desired refresh token expiration time
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -195,18 +196,22 @@ MEDIA_URL = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",
-#     "http://192.168.1.243:3001",
-#     "http://192.168.1.243:3002",
-#     "http://192.168.1.243:3003",
-#     "http://192.168.1.243:3003",
-#     "http://192.168.1.243:3004",
-#     "http://192.168.1.243:5173",
-#     "http://localhost:5174",
+# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost",
+    "http://192.168.1.243:3001",
+    "http://192.168.1.243:3002",
+    "http://192.168.1.243:3003",
+    "http://192.168.1.243:3003",
+    "http://192.168.1.243:3004",
+    "http://192.168.1.243:5173",
+    "http://196.188.240.102:4021",
+    "http://196.188.240.102:4020",
+    "http://localhost:5173",
+    "http://localhost:5174",
     
-# ]
+]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'

@@ -9,5 +9,5 @@
 /backend/data.json
 /backend/db.sqlite3
 /frontend/node_modules
-
+/loki
 

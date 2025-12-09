@@ -1,30 +1,37 @@
-# Stage 1: Build the React app
+# ----------------------------
+# Stage 1: Build React (Vite)
+# ----------------------------
 FROM node:18 AS build
 
 WORKDIR /app
 
-# Copy dependency files
+# Copy dependency files first for caching
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
-# Copy all project files
+# Copy project files
 COPY . .
 
-# Build the app
+# Build production without source maps
+ENV GENERATE_SOURCEMAP=false
 RUN npm run build
 
+# ----------------------------
 # Stage 2: Serve with Nginx
+# ----------------------------
 FROM nginx:alpine
 
-# Copy build output to Nginx html folder
+# Remove default nginx static files
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy build output
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy custom nginx config (optional, can skip for basic setup)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose port 80 (standard HTTP)
+# Expose port 80
 EXPOSE 80
 
-# Start Nginx
+# Start Nginx in foreground
 CMD ["nginx", "-g", "daemon off;"]

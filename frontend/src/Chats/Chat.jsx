@@ -12,7 +12,7 @@ import Constants from "../lib/constants";
 import AppPaths from "../lib/appPaths";
 import ServerUrl from "../api/serverUrl";
 
-const MessageScreen = ({setUnreadCounts, markMessagesAsRead}) => {
+const MessageScreen = ({ setUnreadCounts, markMessagesAsRead }) => {
   const [showModal, setShowModal] = useState(false);
   const [users, setUsers] = useState([]); //popup users
   const [isShowAddPeopleModal, setIsShowAddPeopleModal] = useState(false);
@@ -43,7 +43,7 @@ const MessageScreen = ({setUnreadCounts, markMessagesAsRead}) => {
     setCurrentChattingMember(chatUser);
     setCurrentChatId(chatUser.roomId);
     setShowModal(true); // Open the modal for the chat screen
-  
+
     // Mark messages as read
     markMessagesAsRead(chatUser.roomId);
 
@@ -66,7 +66,7 @@ const MessageScreen = ({setUnreadCounts, markMessagesAsRead}) => {
   };
 
   const redirectUserToDefaultChatRoom = (chatUsers) => {
-    
+
     if (location.pathname === AppPaths.HOME) {
       openChatRoom(chatUsers[0]);
     } else {
@@ -90,7 +90,7 @@ const MessageScreen = ({setUnreadCounts, markMessagesAsRead}) => {
     }
     return lastSeenData;
   };
-  
+
 
   const fetchChatUser = async () => {
     const url = ApiEndpoints.USER_CHAT_URL.replace(
@@ -110,7 +110,7 @@ const MessageScreen = ({setUnreadCounts, markMessagesAsRead}) => {
     setUnreadCounts(unreadCounts);
     redirectUserToDefaultChatRoom(formattedChatUser);
   };
-  
+
   useEffect(() => {
     fetchChatUser();
   }, []);
@@ -198,18 +198,18 @@ const MessageScreen = ({setUnreadCounts, markMessagesAsRead}) => {
       window.location.reload();
     }
   }, []);
-  
+
   function getInitial(firstName, lastName) {
     // Fallback to an empty string if either name is null or undefined
     const firstInitial = firstName ? firstName.charAt(0).toUpperCase() : '';
     const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
-  
+
     // Combine the initials and return
     return `${firstInitial}${lastInitial}`;
   }
 
   return (
-    <div className="h-96 cardd" style={{width:"390px"}}>
+    <div className="h-96 cardd" style={{ width: "390px" }}>
       <div className="flex flex-col justify-center items-center bg-white w-full ">
         <header className="flex flex-col self-stretch px-6 pt-3 w-full bg-white">
           <div className="chat-head flex items-center justify-between">
@@ -244,17 +244,17 @@ const MessageScreen = ({setUnreadCounts, markMessagesAsRead}) => {
                 key={chatUser.id}
               >
                 <div className="d-flex ddd align-items-start">
-                  {chatUser.image ?(
-                  <img
-                    src={chatUser.image}
-                    className="shrink-0 w-12 rounded-full aspect-square"
-                    alt={chatUser.name}
-                    width="40"
-                    height="40"
-                    
-                  />
-                  ):(
-                    <div className="bg-gray-700 w-9 h-9 rounded-full p-2 mr-2 text-white text-center font-extrabold">{getInitial(chatUser.name,null)}</div>
+                  {chatUser.image ? (
+                    <img
+                      src={chatUser.image}
+                      className="shrink-0 w-12 rounded-full aspect-square"
+                      alt={chatUser.name}
+                      width="40"
+                      height="40"
+
+                    />
+                  ) : (
+                    <div className="bg-gray-700 w-9 h-9 rounded-full p-2 mr-2 text-white text-center font-extrabold">{getInitial(chatUser.name, null)}</div>
                   )}
 
                   <div className="flex-grow-1 ml-3">
@@ -263,7 +263,7 @@ const MessageScreen = ({setUnreadCounts, markMessagesAsRead}) => {
                       <span className="badge badge-danger ml-2">
                         {unreadCounts[chatUser.roomId]}
                       </span>
-                    )}  
+                    )}
                   </div>
                 </div>
                 <hr />
@@ -301,14 +301,14 @@ const MessageScreen = ({setUnreadCounts, markMessagesAsRead}) => {
           users.map((user) => (
             <div key={user.id} className="horizontal-align">
               {user.photo ? (
-              <img
-                src={`http://196.188.240.102:4020${user.photo}`}
-                className="rounded-circle"
-                alt={`${user.first_name} ${user.last_name}`}
-                width="40"
-                height="40"
-              />):(
-                <div className="bg-gray-700 rounded-full w-9 h-9 p-2 mr-2 text-white font-extrabold">{getInitial(user.first_name,user.last_name)}</div>
+                <img
+                  src={`${ServerUrl.BASE_URL}${user.photo}`}
+                  className="rounded-circle"
+                  alt={`${user.first_name} ${user.last_name}`}
+                  width="40"
+                  height="40"
+                />) : (
+                <div className="bg-gray-700 rounded-full w-9 h-9 p-2 mr-2 text-white font-extrabold">{getInitial(user.first_name, user.last_name)}</div>
               )}
 
               <div className="user-info">
