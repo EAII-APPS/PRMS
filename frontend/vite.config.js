@@ -1,7 +1,10 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 // Detect if running inside Docker
+// eslint-disable-next-line no-undef
 const isDocker = process.env.DOCKER === "true";
 
 // Set API base URL depending on environment

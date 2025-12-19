@@ -507,7 +507,6 @@ class SummarySubtitleRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPI
     serializer_class = SummarySubtitleSerializer
     permission_classes = [IsAuthenticated]
 
-class SummaryListCreate(generics.ListCreateAPIView):
     queryset = Summary.objects.all()
     serializer_class = SummarySerializer
     permission_classes = [IsAuthenticated]
@@ -609,8 +608,142 @@ class SummaryListCreate(generics.ListCreateAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+class SummaryListCreate(generics.ListCreateAPIView):
+    queryset = Summary.objects.all()
+    serializer_class = SummarySerializer
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request, *args, **kwargs):
+        division_id = getattr(request.user, 'division_id', None)
+        sector_id = getattr(request.user, 'sector_id', None)
+        monitoring_id = getattr(request.user, 'monitoring_id', None)
+        is_superadmin = getattr(request.user, 'is_superadmin', False)
+        filter_year = request.query_params.get('year')
+        filter_quarter = request.query_params.get('quarter')
+        filter_division = request.query_params.get('division')
+        filter_sector = request.query_params.get('sector')
 
+        try:
+            qs = Summary.objects.all()
+            if division_id:
+                qs = qs.filter(division_id=division_id)
+            elif sector_id:
+                from userApp.models import Division
+                sector_divisions = Division.objects.filter(sector_id=sector_id).values_list('id', flat=True)
+                from django.db.models import Q
+                qs = qs.filter(
+                    Q(sector_id=sector_id) |
+                    Q(division_id__in=sector_divisions)
+                )
+            elif monitoring_id:
+                pass
+            elif is_superadmin:
+                pass
+                
+            else:
+                qs = qs.none()
+
+            if filter_division:
+                try:
+                    div_id = int(filter_division)
+                    if division_id:
+                        if div_id == division_id.id:
+                            qs = qs.filter(division_id=div_id)
+                        else:
+                            return Response({"error": "Division users can only access their own division data"}, 
+                                          status=status.HTTP_403_FORBIDDEN)
+                    elif sector_id:
+                        from userApp.models import Division
+                        allowed_divisions = Division.objects.filter(
+                            sector_id=sector_id, 
+                            id=div_id
+                        ).exists()
+                        if allowed_divisions:
+                            qs = qs.filter(division_id=div_id)
+                        else:
+                            return Response({"error": "Sector users can only filter by divisions in their sector"}, 
+                                          status=status.HTTP_403_FORBIDDEN)
+                    else:
+                        qs = qs.filter(division_id=div_id)
+                        
+                except (ValueError, TypeError):
+                    pass
+
+            if filter_sector:
+                try:
+                    sec_id = int(filter_sector)
+                    if monitoring_id or is_superadmin:
+                        qs = qs.filter(sector_id=sec_id)
+                    elif sector_id:
+                        if sec_id == sector_id.id:
+                            qs = qs.filter(sector_id=sec_id)
+                        else:
+                            return Response({"error": "Sector users can only access their own sector data"}, 
+                                          status=status.HTTP_403_FORBIDDEN)
+                    elif division_id:
+                        return Response({"error": "Division users cannot filter by sector"}, 
+                                      status=status.HTTP_403_FORBIDDEN)
+                        
+                except (ValueError, TypeError):
+                    pass
+
+            if filter_year:
+                try:
+                    qs = qs.filter(year=int(filter_year))
+                except (ValueError, TypeError):
+                    pass
+
+            if filter_quarter:
+                q = str(filter_quarter).strip().lower()
+                quarter_map = {
+                    '1': 'first', '2': 'second', '3': 'third', '4': 'fourth',
+                    'first': 'first', 'second': 'second', 'third': 'third', 'fourth': 'fourth',
+                    '6': 'six', '9': 'nine', 'year': 'year'
+                }
+                mapped = quarter_map.get(q)
+                if mapped:
+                    qs = qs.filter(quarter__iexact=mapped)
+
+            if 'pk' in kwargs:
+                try:
+                    obj = qs.get(pk=kwargs['pk'])
+                    serializer = SummarySerializer(obj)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                except Summary.DoesNotExist:
+                    return Response({"error": "Summary not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = SummarySerializer(qs, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            if serializer.is_valid():
+                user = request.user
+                user_has_required_association = False
+                
+                if (hasattr(user, 'sector_id') and user.sector_id is not None and hasattr(user, 'division_id') and user.division_id is None):
+                    user_has_required_association = True
+                    serializer.validated_data['sector_id'] = user.sector_id
+                if hasattr(user, 'monitoring_id') and user.monitoring_id is not None:
+                    user_has_required_association = True
+                    serializer.validated_data['monitoring_id'] = user.monitoring_id
+                if hasattr(user, 'division_id') and user.division_id is not None:
+                    user_has_required_association = True
+                    serializer.validated_data['division_id'] = user.division_id
+
+                if user_has_required_association:
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({"error": "User must belong to at least one sector_id, monitoring_id, or division_id."}, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class SummaryRetrieveUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
     queryset = Summary.objects.all()
@@ -1426,7 +1559,7 @@ class GenerateReportDocument(APIView):
             img_p.alignment = 1
         
 
-        title_text = f"{org_name} {org_type} የ {year} በጀት ዓመት {quarter_name} የወንበል ፍጅት አፈፃፀም ሪፖርት"
+        title_text = f"{org_name} {org_type} የ {year} በጀት ዓመት {quarter_name}  አፈፃፀም ሪፖርት"
         title_p = doc.add_paragraph(title_text)
         set_paragraph_style(title_p, font_size=Pt(14), bold=True, alignment=1)
         
@@ -1594,7 +1727,7 @@ def generate_kpi_performance_table(doc, request, filters=None):
     merged_kpis = merge_annual_kpis(filtered_kpis)
     
   
-    title_text = f"የ {year} በጀት ዓመት {quarter_name} የ {org_name} {org_type} የስራ ስራ ፍጅት አፈፃፀም"
+    title_text = f"የ {year} በጀት ዓመት {quarter_name} የ {org_name} {org_type} የስራ አፈፃፀም"
     p = doc.add_paragraph(title_text)
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     
@@ -1606,12 +1739,12 @@ def generate_kpi_performance_table(doc, request, filters=None):
    
     hdr_cells = table.rows[0].cells
     hdr_cells[0].text = 'ተ.ቁ'
-    hdr_cells[1].text = 'ስትራተጂክ ፍጣች፣ ስራ ስራ ተግባራት እና ውጤት ሑለት የአፈፃፀም አመልካቶች'
+    hdr_cells[1].text = 'ስትራተጂክ ፍጣች፣ ስራ  ተግባራት እና ውጤት  የአፈፃፀም አመልካቶች'
     hdr_cells[2].text = 'መለኪያ'
     hdr_cells[3].text = 'እስከ ' + str(int(year) - 1) + ' አፈፃፀም መንሻ'
     
     merged_report = hdr_cells[4].merge(hdr_cells[5]).merge(hdr_cells[6])
-    merged_report.text = f"የ {year} በጀት ዓመት {quarter_name} የስራ ስራ ፍጣች አፈፃፀም"
+    merged_report.text = f"የ {year} በጀት ዓመት {quarter_name} የስራ  አፈፃፀም"
     
     sub_hdr_cells = table.rows[1].cells
     sub_hdr_cells[4].text = 'ፈፅብ'
