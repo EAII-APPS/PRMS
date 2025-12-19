@@ -555,6 +555,7 @@ def generate_docx(request):
 
     if sector or division is not None:
         if sector is not None:
+            print("lalalalla")
             document_user=User.objects.filter(id=plandocument.added_by.id)
             table_data = generate_docx_data(
                 filter_year=filter_year,
