@@ -21,7 +21,7 @@ const AuthProvider = ({ children }) => {
     if (token) {
       const fetchData = async () => {
         try {
-          const response = await axiosInstance.get("userApp/users/my_profile", {
+          const response = await axiosInstance.get("userApp/users/my_profile/", {
             headers: {
               Authorization: `Bearer ${token}`,
             },

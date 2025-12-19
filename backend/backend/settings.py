@@ -63,9 +63,9 @@ INSTALLED_APPS = [
     'planApp.apps.PlanappConfig',
     'reportApp.apps.ReportappConfig',
     'comApp.apps.ComappConfig',
-    'monApp.apps.MonappConfig',  
-    'django_prometheus',
-
+    'monApp.apps.MonappConfig', 
+    'django_prometheus', 
+    'mozilla_django_oidc',
 ]
 
 SIMPLE_JWT = {
@@ -76,14 +76,16 @@ SIMPLE_JWT = {
 }
 
 REST_FRAMEWORK = {
-    
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-    )
-    
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    # 'DEFAULT_ROUTER_TRAILING_SLASH': False,
 }
+
 
 AUTHENTICATION_BACKENDS = [
     'userApp.backends.EmailBackend',  # Replace `your_app_name` with your app's name
@@ -98,9 +100,10 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',    
+    'debug_toolbar.middleware.DebugToolbarMiddleware',      
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
-    'django_prometheus.middleware.PrometheusAfterMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware', 
+
 
 ]
 ROOT_URLCONF = 'backend.urls'
@@ -128,12 +131,27 @@ ASGI_APPLICATION = 'backend.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB", "pmo_db"),
+        "USER": os.getenv("POSTGRES_USER", "pmo_user"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "pmo_pass"),
+        "HOST": os.getenv("POSTGRES_HOST", "db"),
+        "PORT": os.getenv("POSTGRES_PORT", 5432),
     }
 }
+
+
+
+
+
 
 CHANNEL_LAYERS = {
     "default": {
@@ -176,6 +194,7 @@ USE_TZ = True
 
 import os
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # MEDIA_URL = '/assets/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -224,7 +243,23 @@ EMAIL_HOST_PASSWORD = 'ripu pmpo yzic gpjs'
 
 KEYCLOAK_CLIENT_ID = "PRMS"
 KEYCLOAK_CLIENT_SECRET = "fg1ERTmny3RAWr6wgnVCveSBTxOJAZKe"
-KEYCLOAK_REDIRECT_URI = "http://192.168.8.72:8000/"
-KEYCLOAK_BASE_URL = "http://192.168.8.135:8080/"
-KEYCLOAK_REALM = "EAII"
-PORTAL_BASE_URL = "http://192.168.8.135:8000/"
+KEYCLOAK_REDIRECT_URI = "https://192.168.8.72:8001/"
+KEYCLOAK_BASE_URL = "https://192.168.8.135:8081/"
+KEYCLOAK_REALM = "pmo-realm"
+PORTAL_BASE_URL = "https://192.168.8.135:8001/"
+
+APPEND_SLASH = False
+
+OIDC_RP_CLIENT_ID = "django-backend"
+OIDC_RP_CLIENT_SECRET = "<secret-from-keycloak>"
+OIDC_OP_AUTHORIZATION_ENDPOINT = "http://172.18.6.64/:8081/realms/myrealm/protocol/openid-connect/auth"
+OIDC_OP_TOKEN_ENDPOINT = "http://172.18.6.64/:8081/realms/myrealm/protocol/openid-connect/token"
+OIDC_OP_USER_ENDPOINT = "http://172.18.6.64/:8081/realms/myrealm/protocol/openid-connect/userinfo"
+
+LOGIN_URL = '/oidc/authenticate/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True

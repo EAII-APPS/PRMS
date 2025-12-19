@@ -11,7 +11,7 @@ export const fetchMainGoalData = createAsyncThunk(
   "fetchMainGoalData",
   async () => {
     try {
-      const mainGoalData = await axiosInistance.get("/planApp/mainGoals", {
+      const mainGoalData = await axiosInistance.get("/planApp/mainGoals/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
