@@ -1,6 +1,7 @@
 # serializers.py
 from rest_framework import serializers
 from .models import *
+from userApp.models import Division
 from reportApp.models import Measure
 
 class StrategicGoalSerializer(serializers.ModelSerializer):
@@ -72,6 +73,7 @@ class KPISerializer(serializers.ModelSerializer):
 class AnnualKPISerializer(serializers.ModelSerializer):
     kpi_name = serializers.CharField(source='kpi.name', read_only=True)
     maingoal_name = serializers.CharField(source='kpi.main_goal_id.name', read_only=True)
+    division_name = serializers.CharField(source='division_id.name', read_only=True)
   # Ensure this matches the method name below
 
     class Meta:
@@ -86,6 +88,7 @@ class AnnualKPISerializer(serializers.ModelSerializer):
             'annual',
             'annual_unit_id',
             'year',
+            'division_name',
             'initial',
             'initial_unit_id',
             'weight',
