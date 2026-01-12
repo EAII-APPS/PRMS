@@ -1,0 +1,184 @@
+version: "3.9"
+
+services:
+
+  # ------------------
+  # PostgreSQL (PROD)
+  # ------------------
+  postgres:
+    image: postgres:15
+    container_name: postgres-db
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - prms_network
+
+  # ------------------
+  # PostgreSQL Backup (Daily, 30-day retention)
+  # ------------------
+  pgbackup:
+    image: prodrigestivill/postgres-backup-local
+    container_name: pg-backup
+    user: postgres:postgres
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres-db
+      POSTGRES_EXTRA_OPTS: -Z9 --schema=public
+      SCHEDULE: "@daily"
+      BACKUP_ON_START: "true"
+      BACKUP_KEEP_DAYS: "30"
+      BACKUP_KEEP_WEEKS: "4"
+      BACKUP_KEEP_MONTHS: "6"
+    volumes:
+      - /opt/prms/pg_backups:/backups
+    networks:
+      - prms_network
+
+  # ------------------
+  # pgAdmin (optional in prod)
+  # ------------------
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    env_file:
+      - .env
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - prms_network
+
+  # ------------------
+  # Django Backend (PROD IMAGE)
+  # ------------------
+  backend:
+    image: ghcr.io/eaii-apps/prms-backend:latest
+    container_name: django-backend
+    env_file:
+      - .env
+    ports:
+      - "4020:8000"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - prms_network
+
+  # ------------------
+  # React Frontend (PROD IMAGE)
+  # ------------------
+  frontend:
+    image: ghcr.io/eaii-apps/prms-frontend:latest
+    container_name: react-frontend
+    ports:
+      - "4021:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - prms_network
+
+  # ------------------
+  # Prometheus
+  # ------------------
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "4022:9090"
+    restart: unless-stopped
+    networks:
+      - prms_network
+
+  # ------------------
+  # cAdvisor
+  # ------------------
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    container_name: cadvisor
+    ports:
+      - "4024:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped
+    networks:
+      - prms_network
+
+  # ------------------
+  # Grafana
+  # ------------------
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - prms_network
+
+  # ------------------
+  # Loki
+  # ------------------
+  loki:
+    image: grafana/loki:2.8.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+    networks:
+      - prms_network
+
+  # ------------------
+  # Promtail
+  # ------------------
+  promtail:
+    image: grafana/promtail:2.8.0
+    container_name: promtail
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./promtail-config.yaml:/etc/promtail/config.yaml:ro
+    command: -config.file=/etc/promtail/config.yaml
+    restart: unless-stopped
+    networks:
+      - prms_network
+
+# ------------------
+# Networks
+# ------------------
+networks:
+  prms_network:
+    driver: bridge
+
+# ------------------
+# Volumes
+# ------------------
+volumes:
+  postgres_data:
+  pgadmin_data:
+  grafana_data:
+  loki_data:
