@@ -1,0 +1,34 @@
+name: CI/CD Build & Deploy
+
+on:
+  push:
+    branches:
+      - ci-cd-clean
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-pull:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Pull backend image
+        run: docker pull ghcr.io/eaii-apps/prms-backend:latest
+
+      - name: Pull frontend image
+        run: docker pull ghcr.io/eaii-apps/prms-frontend:latest
+
+      - name: Start CI/CD containers
+        run: docker compose -f docker-compose.cicd.yml up -d

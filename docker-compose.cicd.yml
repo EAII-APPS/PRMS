@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres-cicd
+    env_file: .env
+    volumes:
+      - postgres_cicd_data:/var/lib/postgresql/data
+    ports:
+      - "55432:5432"
+    restart: unless-stopped
+
+  backend:
+    image: ghcr.io/eaii-apps/prms-backend:latest
+    container_name: django-backend-cicd
+    env_file: .env
+    ports:
+      - "5020:8000"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/eaii-apps/prms-frontend:latest
+    container_name: react-frontend-cicd
+    ports:
+      - "5021:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_cicd_data:
