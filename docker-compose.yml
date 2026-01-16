@@ -3,7 +3,25 @@ version: "3.9"
 services:
 
   # ------------------
-  # Django Backend0
+  # Postgres Database
+  # ------------------
+  postgres:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: prms_db
+      POSTGRES_USER: prms_user
+      POSTGRES_PASSWORD: strong_password_here
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - prms_network
+
+  # ------------------
+  # Django Backend
   # ------------------
   backend:
     build: ./backend
@@ -11,13 +29,18 @@ services:
     ports:
       - "4020:8000"
     volumes:
-      - ./backend:/app
-      - ./backend/media:/app/media
+      - backend_code:/app
+      - backend_media:/app/media
     environment:
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
       - DJANGO_SETTINGS_MODULE=backend.settings
       - ALLOWED_HOSTS=*
+      - POSTGRES_DB=prms_db
+      - POSTGRES_USER=prms_user
+      - POSTGRES_PASSWORD=strong_password_here
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
     restart: unless-stopped
     networks:
       - prms_network
@@ -28,15 +51,16 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile # production Dockerfile with Nginx
+      dockerfile: Dockerfile
     container_name: react-frontend
     ports:
-      - "4021:80" # Nginx serves on 80 internally
+      - "4021:80"
     depends_on:
       - backend
     restart: unless-stopped
     volumes:
-      - ./backend/media:/app/media
+      - backend_media:/app/media
+      - frontend_build:/usr/share/nginx/html
     networks:
       - prms_network
 
@@ -47,6 +71,7 @@ services:
     image: prom/prometheus
     container_name: prometheus
     volumes:
+      - prometheus_data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "4022:9090"
@@ -79,6 +104,8 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
+    volumes:
+      - grafana_data:/var/lib/grafana
     networks:
       - prms_network
 
@@ -91,9 +118,9 @@ services:
     ports:
       - "3100:3100"
     volumes:
-      - ./loki/wal:/wal
-      - ./loki/index:/loki/index
-      - ./loki/chunks:/loki/chunks
+      - loki_wal:/wal
+      - loki_index:/loki/index
+      - loki_chunks:/loki/chunks
       - ./loki-config.yaml:/etc/loki/local-config.yaml
     networks:
       - prms_network
@@ -107,6 +134,7 @@ services:
     volumes:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - promtail_data:/etc/promtail
       - ./promtail-config.yaml:/etc/promtail/config.yaml
     command: -config.file=/etc/promtail/config.yaml
     networks:
@@ -118,3 +146,18 @@ services:
 networks:
   prms_network:
     driver: bridge
+
+# ------------------
+# Named Volumes (Persistent)
+# ------------------
+volumes:
+  postgres_data:
+  backend_code:
+  backend_media:
+  frontend_build:
+  prometheus_data:
+  grafana_data:
+  loki_wal:
+  loki_index:
+  loki_chunks:
+  promtail_data:

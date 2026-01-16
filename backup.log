@@ -1,0 +1,4 @@
+[2026-01-16 11:43:07] Starting backup...
+./backupDB.sh: line 12: pg_dump: command not found
+[2026-01-16 11:43:07] Backup failed!
+----------------------------------------
