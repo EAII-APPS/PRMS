@@ -1,6 +1,6 @@
 {
   "LOGINPAGE": {
-    "LOGINPAGE": "PLAN AND REPORT MONITORING SYSTEM(PRMS)",
+    "LOGINPAGE": "PLAN AND REPORT MONITORING SYSTEM(PMRS)",
     "LOGIN": "Login",
     "EMAIL": "Email",
     "PASSWORD": "Password",
@@ -8,8 +8,9 @@
     "SIGNIN": "Sign in to your account"
   },
   "MAIN": {
- 
-    "TITLE": "PRMS",
+    "TITLE": "PMRS",
+    "WELCOME": "Welcome back,",
+    "HERE": ". Here's your performance overview.",
     "PROFILE": {
       "MYPROFILE": "My Profile",
       "SETTING": "Setting",
@@ -18,6 +19,49 @@
     },
     "CHAT": {
       "CHAT": "Chats"
+    },
+    "DASHBOARD_PAGE": {
+      "TITLE": "{{role}} Dashboard",
+      "NO_ACTIVE_REMINDER": "No Active Reminders",
+      "CREATE_NEW": "Create New",
+      "DELETE": "Delete",
+      "DELETE_CONFIRMATION": "Are you sure you want to delete this reminder?",
+      "NO": "No",
+      "YES": "Yes",
+      "ID": "ID",
+      "KPI_NAME": "KPI Name",
+      "WEIGHT": "Weight",
+      "TOTAL_PLAN": "Total Plan",
+      "Q1": "Q1 Performance (%)",
+      "Q2": "Q2 Performance (%)",
+      "Q3": "Q3 Performance (%)",
+      "Q4": "Q4 Performance (%)",
+      "TOTAL_PERFORMANCE": "Total Performance (%)",
+      "SEARCH_PLACEHOLDER": "Search by KPI Name",
+      "FILTER": {
+        "TITLE": "Filter Dashboard",
+        "SELECT_YEAR": "Select Year",
+        "SELECT_SECTOR": "Select Sector",
+        "SELECT_DIVISION": "Select Division",
+        "SELECT_KPI": "Select KPI",
+        "SELECT_SECTOR_FIRST": "Please select a sector first",
+        "FILTER_BUTTON": "Apply Filter",
+        "CLEAR_BUTTON": "Clear Filter"
+      },
+      "CHARTS": {
+        "PERFORMANCE": "Performance",
+        "PERFORMANCE_PER_STRATEGIC_GOAL": "Performance per Strategic Goal",
+        "SECTOR_PERFORMANCE_OVERVIEW": "Sector Performance Overview",
+        "DIVISION_PERFORMANCE_OVERVIEW": "Division Performance Overview",
+        "THREE_YEAR_PERFORMANCE": "Three Year Performance",
+        "PERFORMANCE_PERCENTAGE": "Performance Percentage",
+        "LEGEND": "Legend",
+        "GREATER_THAN_90": "≥ 90%",
+        "GREATER_THAN_70": "≥ 70%",
+        "GREATER_THAN_50": "≥ 50%",
+        "LESS_THAN_50": "< 50%",
+        "KPI_PERFORMANCE": "KPI Performance"
+      }
     },
     "SIDEBAR": {
       "DASHBOARD": "Dashborad",
@@ -54,18 +98,18 @@
         },
         "PLAN_SUMMARY": {
           "PLAN_SUMMARY": "Plan Summary",
-          "SUMMARY":"Summary",
+          "SUMMARY": "Summary",
           "ADD_SUMMARY": "Add Summary",
-          "MERGE_SELECTED":"Merge Documents",
-          "SELECT":"Select",
-          "NO":"No",
-          "TITLE":"Title",
-          "YEAR":"Year",
-          "QUARTER":"Quarter",
-          "APPROVE":"Approve",
-          "OWNER" : "User type",
-          "SUBMIT":"Submit",
-          "ACTION":"Action"
+          "MERGE_SELECTED": "Merge Documents",
+          "SELECT": "Select",
+          "NO": "No",
+          "TITLE": "Title",
+          "YEAR": "Year",
+          "QUARTER": "Quarter",
+          "APPROVE": "Approve",
+          "OWNER": "User type",
+          "SUBMIT": "Submit",
+          "ACTION": "Action"
         },
         "KPI": {
           "KPI": "Annual KPI",
@@ -88,7 +132,7 @@
         },
         "GENERATE_PLAN_TABLE": {
           "GENERATE_PLAN_TABLE": "Generate plan table",
-          "GENERATE_THREE_YEAR_PLAN_TABLE":"Generate three year plan table",
+          "GENERATE_THREE_YEAR_PLAN_TABLE": "Generate three year plan table",
           "TITLE": "Goals and Action Plan for the Fiscal Year",
           "TITLETHREEYEAR": "Goals for three year",
           "TITLETHREEYEARREPORT": "Report table for three year"
@@ -100,8 +144,8 @@
       "REPORT": {
         "REPORT": "Report",
         "GENERATE": "Generate",
-        "COMMENT":"Comment",
-        "COMMENT_SECTION":"Comment Section",
+        "COMMENT": "Comment",
+        "COMMENT_SECTION": "Comment Section",
         "FINAL_DOCUMENT": "Final Document Generation",
         "DOWNLOAD": "Download",
         "KPI_DESCRIPTION": {
@@ -114,7 +158,6 @@
           "TITLE": "Summary",
           "ADDBUTTON": "Add Summary"
         },
-        
         "MEASURE": {
           "MEASURE": "Measure",
           "TITLE": "Measure",
@@ -141,7 +184,7 @@
           "ADDBUTTON": ""
         }
       },
-    "MEASUREMENTMANAGEMENT": {
+      "MEASUREMENTMANAGEMENT": {
         "MEASUREMENTMANAGEMENT": "Measurement ",
         "MEASUREMENT": {
           "MEASUREMENT": "Measure",
@@ -172,7 +215,6 @@
           "ADDBUTTON": ""
         }
       },
-
       "CLUSTER": {
         "CLUSTER": "Cluster",
         "MONITORING": {
@@ -191,10 +233,9 @@
           "ADDBUTTON": "Add Division"
         }
       }
-      
     },
     "TABLE": {
-      "DOWNLOAD":"Download",
+      "DOWNLOAD": "Download",
       "NO": "No",
       "NAME": "Name",
       "EMAIL": "Email",
@@ -220,7 +261,7 @@
       "SIX_MONTH": "6th Month",
       "NINE_MONTH": "9th Month",
       "FINAL_YEAR": "year",
-      "YEARTHREE_VALUES":"Yearly {{year_one}} - {{year_three}} plan",
+      "YEARTHREE_VALUES": "Yearly {{year_one}} - {{year_three}} plan",
       "REPORT_TITLE": "Performance of the main goals of the sector",
       "REPORT_OF_LAST_YEAR": "Utill {{reportLastYear}} performance (Initial)",
       "REPORT_OF_THIS_YEAR": "{{reportThisYear}} fiscal year quarter performance",
@@ -229,7 +270,6 @@
       "REPORT_PERFORMANCE_IN_PERCENT": "performance in percent",
       "USERTYPE": "User type",
       "YEAR": "Year",
-      "ANNUAL" : "Annual",
       "SELECT_YEAR": "Select year",
       "SELECT_START_YEAR": "Select Start Year",
       "QUARTER": "Quarter",
@@ -240,7 +280,7 @@
       "SELECT_DIVISION": "Select Division",
       "DESCRIPTION": "kpi Description",
       "FILTER": "Filter",
-      "CLEAR" : "Clear",
+      "CLEAR": "Clear",
       "TOTAL": "Total"
     },
     "FOOTER": {
@@ -275,11 +315,11 @@
       "ADD_NEW_MAIN_GOAL": "Add New MainGoal",
       "ADD_NEW_KPI": "Add New Kpi",
       "ADD_KPI": "Add Kpi",
-      "ADD_KPI3":"Add Kpi",
+      "ADD_KPI3": "Add Kpi",
       "INITIAL": "Initial",
       "MEASURE": "Measure",
       "KPI": "Kpi",
-      "ANNUAL":"Annual Plan",
+      "ANNUAL": "Annual Plan",
       "TOTAL": "Total Plan",
       "FIRST_QUARTER": "1st Quarter",
       "SECOND_QUARTER": "2nd Quarter",
@@ -325,7 +365,7 @@
       "SYMBOL": "Symbol",
       "CONVERSION_FACTOR": "conversion Factor",
       "IS_BASE_UNITE": "Is Base Unit",
-      "UNIT" : "Select Unit"
+      "UNIT": "Select Unit"
     }
   }
 }

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { Card, CardBody, Typography, Input, Button } from "@material-tailwind/react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faClock, faCalendarAlt, faFlag, faCheck } from "@fortawesome/free-solid-svg-icons";
 
 const ReminderCard = ({ onSave, onClose, user }) => {
   const [title, setTitle] = useState('');
@@ -24,90 +27,112 @@ const ReminderCard = ({ onSave, onClose, user }) => {
     }
   };
 
-/*   const handleSubmit = (e) => {
-    e.preventDefault();
-    const now = new Date();
-
-    if (sectorDate){
-      if(sectorDate < now) {
-        setError('The dates cannot be in the past.');
-      }
-      else{
-        setError('');
-        const divisionDateToSave = null;
-        onSave(title, sectorDate, divisionDateToSave);
-      }
-    } 
-    else{
-      if (divisionDate < now){
-        setError('The dates cannot be in the past.');}
-      else{
-        setError('');
-        const sectorDateToSave = null;
-        onSave(title, sectorDate, sectorDateToSave);      }
-    }
-  }; */
-
   return (
-    <form onSubmit={handleSubmit} className="w-full">
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">Title:</label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-        />
-      </div>
-      {user && user.monitoring_id && (
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">Submission Date of Sector:</label>
-          <DatePicker
-            selected={sectorDate}
-            onChange={(date) => setSectorDate(date)}
-            showTimeSelect
-            dateFormat="Pp"
-            required
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            wrapperClassName="w-full"
-            popperClassName="shadow-lg"
-          />
-          {error && <p className="text-red-500 text-xs italic mt-2">{error}</p>}
-        </div>
-      )}
-      {user && user.sector_id && (
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">Submission Date of Division:</label>
-          <DatePicker
-            selected={divisionDate}
-            onChange={(date) => setDivisionDate(date)}
-            showTimeSelect
-            dateFormat="Pp"
-            required
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            wrapperClassName="w-full"
-            popperClassName="shadow-lg"
-          />
-          {error && <p className="text-red-500 text-xs italic mt-2">{error}</p>}
-        </div>
-      )}
-      <div className="flex items-center justify-between">
-        <button
-          type="submit"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-        >
-          Save
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
+    <Card className="w-full shadow-none bg-transparent">
+      <CardBody className="p-6">
+        <Typography variant="h5" color="blue-gray" className="mb-6 font-bold flex items-center gap-2">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center shadow-sm">
+            <FontAwesomeIcon icon={faClock} />
+          </div>
+          Create New Reminder
+        </Typography>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Typography variant="small" color="blue-gray" className="font-bold px-1 opacity-70">
+              Reminder Title
+            </Typography>
+            <Input
+              size="lg"
+              placeholder="Enter reminder title..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              className="!border-t-blue-gray-200 focus:!border-t-blue-500"
+              labelProps={{ className: "hidden" }}
+              icon={<FontAwesomeIcon icon={faFlag} className="text-gray-400" />}
+            />
+          </div>
+
+          {user && user.monitoring_id && (
+            <div className="space-y-2">
+              <Typography variant="small" color="blue-gray" className="font-bold px-1 opacity-70">
+                Submission Date of Sector
+              </Typography>
+              <div className="relative group">
+                <DatePicker
+                  selected={sectorDate}
+                  onChange={(date) => setSectorDate(date)}
+                  showTimeSelect
+                  dateFormat="Pp"
+                  required
+                  customInput={
+                    <div className="w-full flex items-center justify-between p-3 border border-blue-gray-200 rounded-lg bg-white group-focus-within:border-blue-500 transition-colors cursor-pointer">
+                      <span className={sectorDate ? "text-blue-gray-900 font-medium" : "text-gray-400"}>
+                        {sectorDate ? sectorDate.toLocaleString() : "Select date and time..."}
+                      </span>
+                      <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400" />
+                    </div>
+                  }
+                  wrapperClassName="w-full"
+                  popperClassName="shadow-2xl !z-[2000]"
+                />
+              </div>
+              {error && <Typography variant="small" color="red" className="px-1 italic font-medium">{error}</Typography>}
+            </div>
+          )}
+
+          {user && user.sector_id && (
+            <div className="space-y-2">
+              <Typography variant="small" color="blue-gray" className="font-bold px-1 opacity-70">
+                Submission Date of Division
+              </Typography>
+              <div className="relative group">
+                <DatePicker
+                  selected={divisionDate}
+                  onChange={(date) => setDivisionDate(date)}
+                  showTimeSelect
+                  dateFormat="Pp"
+                  required
+                  customInput={
+                    <div className="w-full flex items-center justify-between p-3 border border-blue-gray-200 rounded-lg bg-white group-focus-within:border-blue-500 transition-colors cursor-pointer">
+                      <span className={divisionDate ? "text-blue-gray-900 font-medium" : "text-gray-400"}>
+                        {divisionDate ? divisionDate.toLocaleString() : "Select date and time..."}
+                      </span>
+                      <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400" />
+                    </div>
+                  }
+                  wrapperClassName="w-full"
+                  popperClassName="shadow-2xl !z-[2000]"
+                />
+              </div>
+              {error && <Typography variant="small" color="red" className="px-1 italic font-medium">{error}</Typography>}
+            </div>
+          )}
+
+          <div className="flex gap-4 pt-4">
+            <Button
+              type="submit"
+              variant="gradient"
+              color="blue"
+              className="flex-1 py-3 group flex items-center justify-center gap-2 normal-case text-sm"
+            >
+              Save Reminder
+              <FontAwesomeIcon icon={faCheck} className="hidden group-hover:block animate-in zoom-in" />
+            </Button>
+            <Button
+              type="button"
+              variant="text"
+              color="blue-gray"
+              onClick={onClose}
+              className="normal-case font-bold"
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </CardBody>
+    </Card>
   );
 };
 

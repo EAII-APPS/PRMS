@@ -404,7 +404,7 @@ function NavBar({ onSidebarToggle }) {
           <a onClick={onSidebarToggle}>
             <FontAwesomeIcon icon={faBars} className="cursor-pointer ml-10" />
           </a>
-          <img src={logo} alt="PRMS logo" className="w-12 ml-3" />
+          <img src={logo} alt="PMRS logo" className="w-12 ml-3" />
           <h1 className=" mr-10 font-bold text-black text-lg">
             {t("MAIN.TITLE")}
           </h1>
@@ -466,7 +466,7 @@ function NavBar({ onSidebarToggle }) {
           <ProfileMenu />
           <div className="px-2 text-sm font-bold text-gray-900 dark:text-white">
             <div className="truncate">{authInfo.user.first_name} <p className=" inline text-blue-gray-500">{authInfo.user.last_name}</p> </div>
-            
+
           </div>
 
         </div>

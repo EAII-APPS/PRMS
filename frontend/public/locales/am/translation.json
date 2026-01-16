@@ -9,6 +9,8 @@
   },
   "MAIN": {
     "TITLE": "የእቅድና ሪፖርት መከታተያ ሲስተም",
+    "WELCOME": "እንኳን ደህና መጡ፣",
+    "HERE": "አጠቃላይ የአፈጻጸሞን እዚህ ያገኛሉ።",
     "PROFILE": {
       "MYPROFILE": "የኔ ፕሮፋይል",
       "SETTING": "መቼት",
@@ -17,6 +19,49 @@
     },
     "CHAT": {
       "CHAT": "ቻት"
+    },
+    "DASHBOARD_PAGE": {
+      "TITLE": "የ{{role}} ዳሽቦርድ",
+      "NO_ACTIVE_REMINDER": "ምንም ንቁ ማስታወሻዎች የሉም",
+      "CREATE_NEW": "አዲስ ይፍጠሩ",
+      "DELETE": "ሰርዝ",
+      "DELETE_CONFIRMATION": "ይህን ማስታወሻ መሰረዝ እርግጠኛ ነዎት?",
+      "NO": "አይ",
+      "YES": "አዎ",
+      "ID": "መለያ",
+      "KPI_NAME": "የKPI ስም",
+      "WEIGHT": "ክብደት",
+      "TOTAL_PLAN": "አጠቃላይ እቅድ",
+      "Q1": "የ1ኛ ሩብ አፈጻጸም (%)",
+      "Q2": "የ2ኛ ሩብ አፈጻጸም (%)",
+      "Q3": "የ3ኛ ሩብ አፈጻጸም (%)",
+      "Q4": "የ4ኛ ሩብ አፈጻጸም (%)",
+      "TOTAL_PERFORMANCE": "አጠቃላይ አፈጻጸም (%)",
+      "SEARCH_PLACEHOLDER": "በKPI ስም ይፈልጉ",
+      "FILTER": {
+        "TITLE": "ዳሽቦርድ ያጣሩ",
+        "SELECT_YEAR": "ዓመት ይምረጡ",
+        "SELECT_SECTOR": "ዘርፍ ይምረጡ",
+        "SELECT_DIVISION": "ዲቪዥን ይምረጡ",
+        "SELECT_KPI": "KPI ይምረጡ",
+        "SELECT_SECTOR_FIRST": "እባክዎ መጀመሪያ ዘርፍ ይምረጡ",
+        "FILTER_BUTTON": "ማጣሪያ ይተግብሩ",
+        "CLEAR_BUTTON": "ማጣሪያ ያጽዱ"
+      },
+      "CHARTS": {
+        "PERFORMANCE": "አፈጻጸም",
+        "PERFORMANCE_PER_STRATEGIC_GOAL": "በስትራቴጂክ ግብ አፈጻጸም",
+        "SECTOR_PERFORMANCE_OVERVIEW": "የዘርፍ አፈጻጸም አጠቃላይ እይታ",
+        "DIVISION_PERFORMANCE_OVERVIEW": "የዲቪዥን አፈጻጸም አጠቃላይ እይታ",
+        "THREE_YEAR_PERFORMANCE": "የሶስት አመት አፈጻጸም",
+        "PERFORMANCE_PERCENTAGE": "የአፈጻጸም መቶኛ",
+        "LEGEND": "መግለጫ",
+        "GREATER_THAN_90": "≥ 90%",
+        "GREATER_THAN_70": "≥ 70%",
+        "GREATER_THAN_50": "≥ 50%",
+        "LESS_THAN_50": "< 50%",
+        "KPI_PERFORMANCE": "የKPI አፈጻጸም"
+      }
     },
     "SIDEBAR": {
       "DASHBOARD": " ዳሽ ቦርድ",
@@ -53,18 +98,18 @@
         },
         "PLAN_SUMMARY": {
           "PLAN_SUMMARY": "የዕቅድ ማጠቃለያ",
-          "SUMMARY":"ማጠቃለያ",
+          "SUMMARY": "ማጠቃለያ",
           "ADD_SUMMARY": "ማጠቃለያ ያስገቡ",
-          "MERGE_SELECTED":"ዶክመንቶችን ያዋህዱ",
-          "SELECT":"ምረጥ",
-          "NO":"ተራ ቁጥር",
-          "TITLE":"ርእስ",
-          "YEAR":"ዓመት",
-          "QUARTER":"ሩብ ዓመት",
-          "APPROVE":"ፍቀድ",
-          "SUBMIT":"አስገባ",
-          "ACTION":"ድርጊት",
-          "OWNER" :"የስራ ክፍል"
+          "MERGE_SELECTED": "ዶክመንቶችን ያዋህዱ",
+          "SELECT": "ምረጥ",
+          "NO": "ተራ ቁጥር",
+          "TITLE": "ርእስ",
+          "YEAR": "ዓመት",
+          "QUARTER": "ሩብ ዓመት",
+          "APPROVE": "ፍቀድ",
+          "SUBMIT": "አስገባ",
+          "ACTION": "ድርጊት",
+          "OWNER": "የስራ ክፍል"
         },
         "KPI": {
           "KPI": "የዓመት ቁልፍ የአፈጻጸም አመልካች",
@@ -73,11 +118,10 @@
         },
         "GENERATE_PLAN_TABLE": {
           "GENERATE_PLAN_TABLE": "የዕቅድ ሰንጠርዥ",
-          "GENERATE_THREE_YEAR_PLAN_TABLE":"የሶስት አመት ዕቅድ ሰንጠርዥ",
+          "GENERATE_THREE_YEAR_PLAN_TABLE": "የሶስት አመት ዕቅድ ሰንጠርዥ",
           "TITLE": "የበጀት ዓመቱ ግቦች እና የድርጊት መርሃ ግብር",
           "TITLETHREEYEAR": "የ ሶስት አመት ግቦች እና የድርጊት መርሃ ግብር",
           "TITLETHREEYEARREPORT": "የ ሶስት አመት ግቦች ሪፖርት"
-
         },
         "KPI3": {
           "KPI": "የሶስት ዓመት ቁልፍ የአፈጻጸም አመልካች",
@@ -101,8 +145,8 @@
       "REPORT": {
         "REPORT": "ሪፖርት",
         "GENERATE": "አሳይ",
-        "COMMENT":"አስተያየት",
-        "COMMENT_SECTION":"የአስተያየት መስጫ",
+        "COMMENT": "አስተያየት",
+        "COMMENT_SECTION": "የአስተያየት መስጫ",
         "FINAL_DOCUMENT": "የመጨረሻ ሰነድ አሳይ",
         "DOWNLOAD": "አውርድ",
         "KPI_DESCRIPTION": {
@@ -172,7 +216,6 @@
           "ADDBUTTON": ""
         }
       },
-
       "CLUSTER": {
         "CLUSTER": "የስራ ክፍል",
         "MONITORING": {
@@ -193,7 +236,7 @@
       }
     },
     "TABLE": {
-      "DOWNLOAD":"አውርድ",
+      "DOWNLOAD": "አውርድ",
       "NO": "ተ/ቁ",
       "NAME": "ስም",
       "EMAIL": "ኢሜል",
@@ -219,7 +262,7 @@
       "SIX_MONTH": "የ6ወር",
       "NINE_MONTH": "የ9 ወር",
       "FINAL_YEAR": "የዓመት",
-      "YEARTHREE_VALUES":"የ {{year_one}} - {{year_three}} እቅድ",
+      "YEARTHREE_VALUES": "የ {{year_one}} - {{year_three}} እቅድ",
       "REPORT_TITLE": "የዘርፍ ዋና ግቦች አፈፃፀም",
       "REPORT_OF_LAST_YEAR": "እስከ {{reportLastYear}} አፈጻጸም (መነሻ)",
       "REPORT_OF_THIS_YEAR": "የ {{reportThisYear}} በጀት ዓመት የሩብ ዓመት አፈፃፀም",
@@ -228,7 +271,6 @@
       "REPORT_PERFORMANCE_IN_PERCENT": "አፈጻጸም በፐርሰንት",
       "USERTYPE": "የስራ ክፍል",
       "YEAR": "ዓመት",
-      "ANNUAL" : "ዓመታዊ",
       "SELECT_YEAR": "ዓመት ይምረጡ",
       "QUARTER": "ሩብ ዓመት",
       "SELECT_QUARTER": "ሩብ ዓመት ይምረጡ",
@@ -238,7 +280,7 @@
       "SELECT_DIVISION": "ዲቪዥን ይምረጡ",
       "DESCRIPTION": "ቁልፍ የአፈጻጸም አመልካች  መግለጫ",
       "FILTER": "አጣራ",
-      "CLEAR" : "ሰርዝ",
+      "CLEAR": "ሰርዝ",
       "TOTAL": "አጠቃላይ"
     },
     "FOOTER": {
@@ -276,7 +318,7 @@
       "INITIAL": "መነሻ",
       "MEASURE": "መለኪያ",
       "KPI": "ቁልፍ የአፈጻጸም አመልካች",
-      "ANNUAL":"ኢላማ",
+      "ANNUAL": "ኢላማ",
       "FIRST_QUARTER": "1ኛ ሩብ ዓመት ",
       "SECOND_QUARTER": "2ኛ ሩብ ዓመት",
       "THIRD_QUARTER": "3ኛ ሩብ ዓመት",

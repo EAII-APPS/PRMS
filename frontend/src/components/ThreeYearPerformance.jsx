@@ -1,62 +1,84 @@
 import React from "react";
 import ReactApexChart from "react-apexcharts";
-import { Card } from "@mui/material";
+import { Card, CardBody, Typography } from "@material-tailwind/react";
+import { useTranslation } from "react-i18next";
 
 const ThreeYearPerformanceChart = ({ chartData }) => {
+  const { t } = useTranslation();
+
   const chartOptions = {
     chart: {
       type: "area",
-      height: 350,
+      fontFamily: 'Inter, sans-serif',
       zoom: { enabled: false },
       toolbar: {
-        show: true,  // This will display the toolbar
+        show: true,
         tools: {
-          download: true,  // Enables the download button
-          zoom: false,  // Disable zoom if you don't need it
-          pan: false,  // Disable pan if you don't need it
-          reset: false  // Disable reset zoom button
-        },}  
+          download: true,
+          zoom: false,
+          pan: false,
+          reset: false
+        },
+      }
     },
-    dataLabels: {
-      enabled: false
-    },
+    dataLabels: { enabled: false },
     stroke: {
       curve: "smooth",
       width: 3
     },
     xaxis: {
       categories: chartData.categories,
-      title: {
-        text: "Year"
-      }
+      labels: { style: { colors: "#9ca3af", fontSize: "11px" } },
+      axisBorder: { show: false },
+      axisTicks: { show: false }
     },
     yaxis: {
-      title: {
-        text: "Three year Performance"
-      }
+      labels: { style: { colors: "#9ca3af", fontSize: "11px" } },
+    },
+    grid: {
+      borderColor: "#f3f4f6",
+      strokeDashArray: 4,
     },
     tooltip: {
-      x: {
-        formatter: (val) => `Year ${val}`
-      }
+      theme: "light",
+      x: { formatter: (val) => `${t('MAIN.TABLE.YEAR')} ${val}` }
     },
     legend: {
-      position: 'top'
+      position: 'top',
+      horizontalAlign: 'right',
+      fontSize: '12px',
+      fontWeight: 500,
+      labels: { colors: "#6b7280" }
     },
-    colors: ["#00E396", "#FEB019", "#008FFB", "#FF4560"]
+    colors: ["#3b82f6", "#10b981", "#f59e0b", "#6366f1"],
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.45,
+        opacityTo: 0.05,
+        stops: [20, 100]
+      }
+    },
   };
 
   return (
-    <div className="w-full">
-    <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, mx: "auto", mt: 2 }}>
-      <ReactApexChart
-        options={chartOptions}
-        series={chartData.series}
-        type="area"
-        height={350}
-      />
+    <Card className="w-full shadow-lg border border-gray-100 rounded-xl overflow-hidden hover:shadow-xl transition-shadow mt-6">
+      <div className="p-4 border-b border-gray-50 bg-gray-50/30">
+        <Typography variant="h6" color="blue-gray" className="font-bold opacity-80 flex items-center gap-2">
+          <div className="w-1 h-4 bg-emerald-500 rounded-full" />
+          {t('MAIN.DASHBOARD_PAGE.CHARTS.THREE_YEAR_PERFORMANCE')}
+        </Typography>
+      </div>
+      <CardBody className="p-2">
+        <ReactApexChart
+          options={chartOptions}
+          series={chartData.series}
+          type="area"
+          height={350}
+        />
+      </CardBody>
     </Card>
-    </div>
   );
 };
 

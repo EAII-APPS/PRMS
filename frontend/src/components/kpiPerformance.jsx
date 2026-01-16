@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import ApexCharts from "apexcharts";
 import axiosInstance from "../GlobalContexts/Base_url";
+import { useTranslation } from "react-i18next";
 
 function KpiGraphs({ data }) {  // Destructure the data prop here
+  const { t } = useTranslation();
   const [chartData, setChartData] = useState(null);
   const [chartHeight, setChartHeight] = useState(null);
   const chartRef = useRef(null);
@@ -11,7 +13,7 @@ function KpiGraphs({ data }) {  // Destructure the data prop here
     const fetchData = async () => {
       if (data && data.length) { // Check if data is available
         const kpiNames = data.map(item => item.kpi_name);
-        const performancePercentages = data.map(item => 
+        const performancePercentages = data.map(item =>
           parseFloat(item.compared_performance_percent.replace('%', ''))
         );
 
@@ -46,7 +48,7 @@ function KpiGraphs({ data }) {  // Destructure the data prop here
       const chartOptions = {
         series: [
           {
-            name: "Performance Percentage",
+            name: t('MAIN.DASHBOARD_PAGE.CHARTS.PERFORMANCE_PERCENTAGE'),
             data: chartData.performancePercentages,
           },
         ],
@@ -93,29 +95,29 @@ function KpiGraphs({ data }) {  // Destructure the data prop here
   }, [chartData, chartHeight]);  // Ensure chartHeight is part of dependency
 
   return (
-<div className="overflow-scroll max-h-[400px]">
-  <div className="sticky top-0 bg-white z-10">
-    <h4>Legend:</h4>
-    <div className="flex items-center">
-      <span className="w-4 h-4 bg-green-500 inline-block mr-2"></span>
-      <span>Greater than 90%</span>
+    <div className="overflow-scroll max-h-[400px]">
+      <div className="sticky top-0 bg-white z-10">
+        <h4>{t('MAIN.DASHBOARD_PAGE.CHARTS.LEGEND')}:</h4>
+        <div className="flex items-center">
+          <span className="w-4 h-4 bg-green-500 inline-block mr-2"></span>
+          <span>{t('MAIN.DASHBOARD_PAGE.CHARTS.GREATER_THAN_90')}</span>
+        </div>
+        <div className="flex items-center">
+          <span className="w-4 h-4 bg-yellow-500 inline-block mr-2"></span>
+          <span>{t('MAIN.DASHBOARD_PAGE.CHARTS.GREATER_THAN_70')}</span>
+        </div>
+        <div className="flex items-center">
+          <span className="w-4 h-4 bg-blue-500 inline-block mr-2"></span>
+          <span>{t('MAIN.DASHBOARD_PAGE.CHARTS.GREATER_THAN_50')}</span>
+        </div>
+        <div className="flex items-center">
+          <span className="w-4 h-4 bg-red-500 inline-block mr-2"></span>
+          <span>{t('MAIN.DASHBOARD_PAGE.CHARTS.LESS_THAN_50')}</span>
+        </div>
+      </div>
+      <div className="h-auto" ref={chartRef}></div>
+      <h1 className="sticky bottom-0 text-center bg-white font-bold">{t('MAIN.DASHBOARD_PAGE.CHARTS.KPI_PERFORMANCE')}</h1>
     </div>
-    <div className="flex items-center">
-      <span className="w-4 h-4 bg-yellow-500 inline-block mr-2"></span>
-      <span>Greater than 70%</span>
-    </div>
-    <div className="flex items-center">
-      <span className="w-4 h-4 bg-blue-500 inline-block mr-2"></span>
-      <span>Greater than 50%</span>
-    </div>
-    <div className="flex items-center">
-      <span className="w-4 h-4 bg-red-500 inline-block mr-2"></span>
-      <span>Less than 50%</span>
-    </div>
-  </div>
-  <div className="h-auto" ref={chartRef}></div>
-  <h1 className="sticky bottom-0 text-center bg-white font-bold">KPI Performance</h1>
-</div>
 
   );
 }

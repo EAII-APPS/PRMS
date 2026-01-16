@@ -29,7 +29,7 @@ def dashboard_data(request):
     try:
         # Base query filters
         if request.user.monitoring_id or request.user.is_superadmin:
-            kpi_queryset = KPI.objects.all()
+            annual_kpi_queryset = AnnualKPI.objects.filter(year=filter_year)
             main_goal_queryset = MainGoal.objects.all()
             strategic_goal_queryset = StrategicGoal.objects.all()
             user_queryset = User.objects.all()
@@ -39,7 +39,7 @@ def dashboard_data(request):
                 if not division_ids:
                     division_ids=[0]
                 else:
-                    kpi_queryset = kpi_queryset.filter(division_id__in=division_ids).distinct()
+                    annual_kpi_queryset = annual_kpi_queryset.filter(year=filter_year,division_id__in=division_ids).distinct()
                 main_goal_queryset = main_goal_queryset.filter(sector_id=filter_sector)
                 strategic_goal_queryset = strategic_goal_queryset.filter(sector_id=filter_sector)
                 user_queryset = user_queryset.filter(division_id__in=division_ids).distinct()
@@ -47,13 +47,13 @@ def dashboard_data(request):
             if filter_division:
                 sector_of_division = Division.objects.get(id=filter_division).sector_id
                 division_ids = Division.objects.filter(sector_id=sector_of_division, is_deleted=False).values_list('id', flat=True)
-                kpi_queryset = kpi_queryset.filter(division_id=filter_division)
+                annual_kpi_queryset = annual_kpi_queryset.filter(year=filter_year,division_id=filter_division)
                 main_goal_queryset = main_goal_queryset.filter(sector_id=sector_of_division)
                 strategic_goal_queryset = strategic_goal_queryset.filter(sector_id=sector_of_division)
                 user_queryset = user_queryset.filter(division_id__in=division_ids).distinct()
         if request.user.sector_id:
             division_ids = Division.objects.filter(sector_id=request.user.sector_id.id, is_deleted=False).values_list('id', flat=True)
-            kpi_queryset = KPI.objects.filter(division_id__in=division_ids)
+            annual_kpi_queryset = AnnualKPI.objects.filter(year=filter_year,division_id__in=division_ids)
             main_goal_queryset = MainGoal.objects.filter(sector_id=request.user.sector_id.id)
             strategic_goal_queryset = StrategicGoal.objects.filter(sector_id=request.user.sector_id.id)
             user_queryset = User.objects.filter(sector_id=request.user.sector_id)
@@ -63,7 +63,7 @@ def dashboard_data(request):
                 if not division_ids:
                     division_ids=[0]
                 else:
-                    kpi_queryset = kpi_queryset.filter(division_id__in=division_ids).distinct()
+                    annual_kpi_queryset = annual_kpi_queryset.filter(year=filter_year,division_id__in=division_ids).distinct()
                 main_goal_queryset = main_goal_queryset.filter(sector_id=filter_sector)
                 strategic_goal_queryset = strategic_goal_queryset.filter(sector_id=filter_sector)
                 user_queryset = user_queryset.filter(division_id__in=division_ids).distinct()
@@ -71,13 +71,13 @@ def dashboard_data(request):
             if filter_division:
                 sector_of_division = Division.objects.get(id=filter_division).sector_id
                 division_ids = Division.objects.filter(sector_id=sector_of_division, is_deleted=False).values_list('id', flat=True)
-                kpi_queryset = kpi_queryset.filter(division_id=filter_division)
+                annual_kpi_queryset = annual_kpi_queryset.filter(division_id=filter_division)
                 main_goal_queryset = main_goal_queryset.filter(sector_id=sector_of_division)
                 strategic_goal_queryset = strategic_goal_queryset.filter(sector_id=sector_of_division)
                 user_queryset = user_queryset.filter(division_id__in=division_ids).distinct()
         if request.user.division_id:
             sector_of_division = Division.objects.get(id=request.user.division_id.id).sector_id
-            kpi_queryset = KPI.objects.filter(division_id=request.user.division_id.id)
+            annual_kpi_queryset = AnnualKPI.objects.filter(year=filter_year,division_id=request.user.division_id.id)
             main_goal_queryset = MainGoal.objects.filter(sector_id=sector_of_division)
             strategic_goal_queryset = StrategicGoal.objects.filter(sector_id=sector_of_division)
             user_queryset = User.objects.filter(sector_id=sector_of_division)
@@ -87,7 +87,7 @@ def dashboard_data(request):
                 if not division_ids:
                     division_ids=[0]
                 else:
-                    kpi_queryset = kpi_queryset.filter(division_id__in=division_ids).distinct()
+                    annual_kpi_queryset = annual_kpi_queryset.filter(year=filter_year,division_id__in=division_ids).distinct()
                 main_goal_queryset = main_goal_queryset.filter(sector_id=filter_sector)
                 strategic_goal_queryset = strategic_goal_queryset.filter(sector_id=filter_sector)
                 user_queryset = user_queryset.filter(division_id__in=division_ids).distinct()
@@ -95,7 +95,7 @@ def dashboard_data(request):
             if filter_division:
                 sector_of_division = Division.objects.get(id=filter_division).sector_id
                 division_ids = Division.objects.filter(sector_id=sector_of_division, is_deleted=False).values_list('id', flat=True)
-                kpi_queryset = kpi_queryset.filter(division_id=filter_division)
+                annual_kpi_queryset = annual_kpi_queryset.filter(year=filter_year,division_id=filter_division)
                 main_goal_queryset = main_goal_queryset.filter(sector_id=sector_of_division)
                 strategic_goal_queryset = strategic_goal_queryset.filter(sector_id=sector_of_division)
                 user_queryset = user_queryset.filter(division_id__in=division_ids).distinct()
@@ -104,7 +104,7 @@ def dashboard_data(request):
         current_counts = {
             "strategic_goals": strategic_goal_queryset.count(),
             "main_goals": main_goal_queryset.count(),
-            "kpis": kpi_queryset.count(),
+            "kpis": annual_kpi_queryset.count(),
             "users": user_queryset.count(),  # Users are not filtered by sector or division
         }
 
@@ -489,7 +489,17 @@ def annual_kpi_table_data(request, year):
         if filter_division:
             annual_kpis = annual_kpis.filter(division_id=filter_division)
         if filter_kpi:
-            annual_kpis = annual_kpis.filter(kpi_id=filter_kpi)
+            # `kpi` query param may be either a KPI id or an AnnualKPI id.
+            # If it matches an AnnualKPI id, filter by that; otherwise treat it as a KPI id.
+            try:
+                fk_int = int(filter_kpi)
+            except (TypeError, ValueError):
+                fk_int = None
+
+            if fk_int and AnnualKPI.objects.filter(id=fk_int).exists():
+                annual_kpis = annual_kpis.filter(id=fk_int)
+            else:
+                annual_kpis = annual_kpis.filter(kpi_id=filter_kpi)
 
         for annual_kpi in annual_kpis:
             # Convert quarterly plan values to base unit
@@ -540,9 +550,17 @@ def annual_kpi_table_data(request, year):
         annual_kpis = AnnualKPI.objects.filter(year=year,division_id__in=division_ids)
 
         if filter_division:
-            annual_kpis = annual_kpis.filter(division_id__in=filter_division)
+            annual_kpis = annual_kpis.filter(division_id=filter_division)
         if filter_kpi:
-            annual_kpis = annual_kpis.filter(kpi_id=filter_kpi)
+            try:
+                fk_int = int(filter_kpi)
+            except (TypeError, ValueError):
+                fk_int = None
+
+            if fk_int and AnnualKPI.objects.filter(id=fk_int).exists():
+                annual_kpis = annual_kpis.filter(id=fk_int)
+            else:
+                annual_kpis = annual_kpis.filter(kpi_id=filter_kpi)
 
         for annual_kpi in annual_kpis:
             # Convert quarterly plan values to base unit
@@ -591,9 +609,19 @@ def annual_kpi_table_data(request, year):
     if request.user.division_id:
         # Fetch all AnnualKPI records for the given year
         annual_kpis = AnnualKPI.objects.filter(year=year)
-        annual_kpis = annual_kpis.filter(division_id=request.user.division_id)
+        # `request.user.division_id` may be a related object or an id; normalize to id
+        user_division_id = getattr(request.user.division_id, 'id', request.user.division_id)
+        annual_kpis = annual_kpis.filter(division_id=user_division_id)
         if filter_kpi:
-            annual_kpis = annual_kpis.filter(kpi_id=filter_kpi)
+            try:
+                fk_int = int(filter_kpi)
+            except (TypeError, ValueError):
+                fk_int = None
+
+            if fk_int and AnnualKPI.objects.filter(id=fk_int).exists():
+                annual_kpis = annual_kpis.filter(id=fk_int)
+            else:
+                annual_kpis = annual_kpis.filter(kpi_id=filter_kpi)
 
         for annual_kpi in annual_kpis:
             # Convert quarterly plan values to base unit

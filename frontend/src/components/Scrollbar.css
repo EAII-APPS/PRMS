@@ -1,17 +1,27 @@
-/* Webkit (Safari/Chrome) */
+/* Modern Minimal Scrollbar */
 .scrollbar::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
+  height: 6px;
 }
+
 .scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
+
 .scrollbar::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 5px;
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+}
+
+.scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* slate-400 */
+  background-clip: content-box;
 }
 
 /* Firefox */
 .scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #888 #f1f1f1;
+  scrollbar-color: #cbd5e1 transparent;
 }

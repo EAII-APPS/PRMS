@@ -5,7 +5,7 @@ import LineCharts from "./LineCharts";
 import PieChart from "./PieChart";
 import Barchart from "./Barchart";
 import DashboardTable from "./DashboardTable";
-import { Typography } from "@mui/material";
+import { Typography } from "@material-tailwind/react";
 import FilterDropdown from "./FilterDropdown";
 import {
   Card,
@@ -20,6 +20,8 @@ import {
   DialogHeader,
   DialogFooter,
 } from "@material-tailwind/react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import Countdown from "./Countdown"; // Import the Countdown component
 import "./countdown.css"; // Import Countdown component CSS
 import ReminderCard from "./ReminderCard";
@@ -85,8 +87,8 @@ function Dashboard() {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const currentYear = new Date().getFullYear();
-  const currentYearGC = new Date().getFullYear(); 
-  const currentMonthGC = new Date().getMonth() + 1; 
+  const currentYearGC = new Date().getFullYear();
+  const currentMonthGC = new Date().getMonth() + 1;
   const ethiopianYear = currentYearGC - 7 - (currentMonthGC < 9 ? 1 : 0);
   const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 2013 + index);
   // Retrieve filters from localStorage or set defaults
@@ -165,7 +167,7 @@ function Dashboard() {
 
 
 
-  
+
   const handleFilter = async () => {
     const fetchData = async () => {
       try {
@@ -352,156 +354,177 @@ function Dashboard() {
 
   return (
     <>
-      <div ref={reminderRef} className={`fixed top-16 right-5 w-[350px] z-50 transition-all duration-500 ${isHidden ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100 pointer-events-auto"}`}> 
-        <Card className="shadow-lg rounded-lg bg-white p-4">
-          <div className="xl:flex gap-5 md:grid w-full ml-3" style={{ marginRight: "10px" }}>
-            <Card className="grid gap-16 justify-center items-center w-full">
-              <CardBody style={{ marginBottom: "-50px" }}>
-                {user && user.monitoring_id && (
-                  <>
-                    {sectorDate && (
-                      <>
-                        <h4 className="text-xl hhh font-bold">{titleSec}</h4>
-                        <Countdown sectorDate={sectorDate} divisionDate={null} />
-                      </>
-                    )}
-                    {!sectorDate && (
-                      <p className="no-active">No active reminder</p>
-                    )}
-                  </>
-
-                )}
-                {user && !user.monitoring_id && user.sector_id && !user.division_id && (
-                  <>
-                    {/* {title && <h2 className="text-xl font-bold mb-4">Sector Submission Date:</h2>} */}
-                    {titleSec && <h2 className="text-xl hhh font-bold mb-4">{titleSec}</h2>}
-                    <Countdown sectorDate={sectorDate} divisionDate={null} />
-                    {titleDiv && <h2 className="text-xl hhh font-bold mb-4" style={{ marginTop: "10px", marginBottom: '5px' }}>{titleDiv}</h2>}
-                    <Countdown sectorDate={null} divisionDate={divisionDate} />
-                    {!sectorDate && !divisionDate && (
-                      <p className="no-active">No active reminder</p>
-                    )}
-                  </>
-                )}
-                {user && !user.monitoring_id && user.division_id && divisionDate && (
-                  <>
-                    {titleDiv && <h2 className="text-xl hhh font-bold mb-4">{titleDiv}</h2>}
-                    <Countdown sectorDate={null} divisionDate={divisionDate} />
-                  </>
-                )}
-                {user && user.division_id && (
-                  <>
-                    {!divisionDate && (
-                      <p className="no-active">No active reminder</p>
-                    )}
-                  </>
-                )}
-
-              </CardBody>
-              <CardFooter className="flex w-full justify-around">
-                {user && user.monitoring_id && (
-                  <div>
-                    <Button onClick={handleOpenCreate} className="bg-light-blue-700 hover:shadow-none shadow-none">
-                      Create New
-                    </Button>
-                    {sectorDate && (
-                      <Button onClick={handleOpenDelete} className="bg-red-700 hover:shadow-none shadow-none">
-                        Delete
-                      </Button>
-                    )}
-                  </div>
-                )}
-                {user && user.sector_id && (
-                  <div>
-                    <Button onClick={handleOpenCreate} className="bg-light-blue-700 hover:shadow-none shadow-none" style={{ marginRight: "5px" }}>
-                      Create New
-                    </Button>
-                    {divisionDate && (
-                      <Button onClick={handleOpenDelete} className="bg-red-700 hover:shadow-none shadow-none">
-                        Delete
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </CardFooter>
-              <Dialog open={openCreate} handler={handleOpenCreate}>
-                {/*               <DialogHeader className="flex justify-center items-center">
-                        Create New Reminder
-                      </DialogHeader> */}
-                <DialogBody>
-                  <ReminderCard
-                    onSave={handleCreate}
-                    onClose={handleOpenCreate}
-                    user={user}
-                  />
-                </DialogBody>
-              </Dialog>
-              <Dialog open={openDelete} handler={handleOpenDelete}>
-                <DialogHeader className="flex justify-center items-center">
-                  Are you sure you want to delete this reminder?
-                </DialogHeader>
-                <DialogFooter className="flex gap-3 justify-center items-center">
+      <div ref={reminderRef} className={`fixed top-16 right-5 w-[350px] z-50 transition-all duration-500 ${isHidden ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100 pointer-events-auto"}`}>
+        <Card className="shadow-2xl rounded-2xl bg-white/90 backdrop-blur-md border border-white/20 p-4">
+          <div className="flex flex-col gap-4">
+            <CardBody className="p-2">
+              {user && user.monitoring_id && (
+                <>
+                  {sectorDate && (
+                    <div className="space-y-2">
+                      <Typography variant="h6" color="blue-gray" className="font-bold flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                        {titleSec}
+                      </Typography>
+                      <Countdown sectorDate={sectorDate} divisionDate={null} />
+                    </div>
+                  )}
+                  {!sectorDate && (
+                    <Typography variant="small" className="text-center py-4 font-bold text-pink-500 bg-pink-50/50 rounded-xl border border-pink-100">
+                      {t('MAIN.DASHBOARD_PAGE.NO_ACTIVE_REMINDER')}
+                    </Typography>
+                  )}
+                </>
+              )}
+              {user && !user.monitoring_id && user.sector_id && !user.division_id && (
+                <div className="space-y-4">
+                  {titleSec && (
+                    <div>
+                      <Typography variant="small" className="font-bold uppercase tracking-wider text-blue-gray-400 mb-1">Sector Reminder</Typography>
+                      <Typography variant="h6" color="blue-gray" className="font-bold mb-2">{titleSec}</Typography>
+                      <Countdown sectorDate={sectorDate} divisionDate={null} />
+                    </div>
+                  )}
+                  {titleDiv && (
+                    <div>
+                      <Typography variant="small" className="font-bold uppercase tracking-wider text-blue-gray-400 mb-1">Division Reminder</Typography>
+                      <Typography variant="h6" color="blue-gray" className="font-bold mb-2">{titleDiv}</Typography>
+                      <Countdown sectorDate={null} divisionDate={divisionDate} />
+                    </div>
+                  )}
+                  {!sectorDate && !divisionDate && (
+                    <Typography variant="small" className="text-center py-4 font-bold text-pink-500 bg-pink-50/50 rounded-xl">
+                      {t('MAIN.DASHBOARD_PAGE.NO_ACTIVE_REMINDER')}
+                    </Typography>
+                  )}
+                </div>
+              )}
+              {user && !user.monitoring_id && user.division_id && divisionDate && (
+                <div className="space-y-4">
+                  {titleDiv && <Typography variant="h6" color="blue-gray" className="font-bold mb-2">{titleDiv}</Typography>}
+                  <Countdown sectorDate={null} divisionDate={divisionDate} />
+                </div>
+              )}
+            </CardBody>
+            <CardFooter className="p-0 flex gap-2 pt-2 border-t border-gray-100">
+              {user && (user.monitoring_id || user.sector_id) && (
+                <>
                   <Button
-                    variant="text"
-                    size="md"
-                    className="hover:bg-light-blue-700 text-white bg-light-blue-700"
-                    onClick={handleOpenDelete}
+                    size="sm"
+                    variant="gradient"
+                    color="blue"
+                    fullWidth
+                    onClick={handleOpenCreate}
+                    className="flex items-center justify-center gap-2 normal-case"
                   >
-                    No
+                    {t('MAIN.DASHBOARD_PAGE.CREATE_NEW')}
                   </Button>
-                  <Button variant="text" size="md" color="red" onClick={handleDelete}>
-                    Yes
-                  </Button>
-                </DialogFooter>
-              </Dialog>
-            </Card>
+                  {(sectorDate || divisionDate) && (
+                    <Button
+                      size="sm"
+                      variant="text"
+                      color="red"
+                      onClick={handleOpenDelete}
+                      className="normal-case"
+                    >
+                      {t('MAIN.DASHBOARD_PAGE.DELETE')}
+                    </Button>
+                  )}
+                </>
+              )}
+            </CardFooter>
           </div>
         </Card>
       </div>
 
-      {data ? (
-        <div>
-          <Typography variant="h5" mb={3}>
-            {authInfo.user.role_name} Dashboard
-          </Typography>
-          <FilterDropdown />
-          <CardStats statsData={data.dashboard_cards} />
-          <div className="flex">
-            <Barchart chartData={data.bar} />
-            <PieChart data={data.pie} />
-          </div>
-          {data.threeYearPerformance.series && (
-            <div className="flex">
-              <ThreeYearPerformanceChart chartData={data.threeYearPerformance} />
+      <div className="p-4 md:p-6 space-y-8 bg-gray-50/30 min-h-screen">
+        {data ? (
+          <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-6">
+              <div>
+                <Typography variant="h3" color="blue-gray" className="font-extrabold tracking-tight">
+                  {t('MAIN.TITLE')} Dashboard
+                </Typography>
+                <Typography color="gray" className="font-medium mt-1 opacity-70">
+                  {t('MAIN.WELCOME')} <span className="text-blue-600 font-bold">{authInfo.user.role_name}</span> {t('MAIN.HERE')}
+                </Typography>
+              </div>
+              <FilterDropdown />
             </div>
-          )}
-          <DashboardTable data={data.table || []} />
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Top Row - Count Cards Skeleton */}
-          <div className="grid grid-cols-4 gap-6">
-            {/* Placeholder for cards */}
-            <div className="h-20 bg-white animate-pulse rounded-md"></div>
-            <div className="h-20 bg-white animate-pulse rounded-md"></div>
-            <div className="h-20 bg-white animate-pulse rounded-md"></div>
-            <div className="h-20 bg-white animate-pulse rounded-md"></div>
+
+            {/* Stats Cards Section */}
+            <section>
+              <CardStats statsData={data.dashboard_cards} />
+            </section>
+
+            {/* Charts Section */}
+            <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className={(data.bar && data.pie && data.pie.length > 0) ? "lg:col-span-2" : "lg:col-span-3"}>
+                <Barchart chartData={data.bar} />
+              </div>
+              <div className={(data.bar && data.pie && data.pie.length > 0) ? "lg:col-span-1" : "lg:col-span-3"}>
+                <PieChart data={data.pie} />
+              </div>
+            </section>
+
+            {/* Performance Over Time / Three Year Section */}
+            {data.threeYearPerformance.series && (
+              <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+                <ThreeYearPerformanceChart chartData={data.threeYearPerformance} />
+              </section>
+            )}
+
+            {/* Data Table Section */}
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
+              <DashboardTable data={data.table || []} />
+            </section>
           </div>
-
-          {/* Middle - Two Cards Side by Side (Charts or Large Cards) */}
-          <div className="flex space-x-6">
-            <div className="flex-1 h-60 bg-white animate-pulse rounded-md"></div>
-            <div className="flex-1 h-60 bg-white animate-pulse rounded-md"></div>
+        ) : (
+          <div className="max-w-[1600px] mx-auto space-y-6">
+            <div className="h-20 w-1/3 bg-gray-100 animate-pulse rounded-xl" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="h-32 bg-gray-100 animate-pulse rounded-2xl" />
+              <div className="h-32 bg-gray-100 animate-pulse rounded-2xl" />
+              <div className="h-32 bg-gray-100 animate-pulse rounded-2xl" />
+              <div className="h-32 bg-gray-100 animate-pulse rounded-2xl" />
+            </div>
+            <div className="flex flex-col lg:flex-row gap-6">
+              <div className="lg:w-2/3 h-[400px] bg-gray-100 animate-pulse rounded-2xl" />
+              <div className="lg:w-1/3 h-[400px] bg-gray-100 animate-pulse rounded-2xl" />
+            </div>
+            <div className="h-96 bg-gray-100 animate-pulse rounded-2xl" />
           </div>
+        )}
+      </div>
 
-          {/* Bottom - Table Skeleton */}
-          <div className="w-full h-64 bg-white animate-pulse rounded-md"></div>
-        </div>
-      )}
+      {/* Dialogs */}
+      <Dialog open={openCreate} handler={handleOpenCreate} size="sm" className="rounded-2xl">
+        <DialogBody className="p-0">
+          <ReminderCard onSave={handleCreate} onClose={handleOpenCreate} user={user} />
+        </DialogBody>
+      </Dialog>
 
-
+      <Dialog open={openDelete} handler={handleOpenDelete} size="xs" className="rounded-2xl">
+        <DialogHeader className="flex flex-col items-center gap-2 pt-8">
+          <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-2">
+            <FontAwesomeIcon icon={faTimes} className="text-xl" />
+          </div>
+          <Typography variant="h5" color="blue-gray" className="text-center font-bold px-4">
+            {t('MAIN.DASHBOARD_PAGE.DELETE_CONFIRMATION')}
+          </Typography>
+        </DialogHeader>
+        <DialogFooter className="flex gap-3 justify-center items-center pb-8 pt-4">
+          <Button variant="text" size="md" color="blue-gray" onClick={handleOpenDelete} className="normal-case font-bold">
+            {t('MAIN.DASHBOARD_PAGE.NO')}
+          </Button>
+          <Button variant="gradient" size="md" color="red" onClick={handleDelete} className="normal-case font-bold shadow-red-200">
+            {t('MAIN.DASHBOARD_PAGE.YES')}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </>
   );
-}
+};
 
 export default Dashboard;

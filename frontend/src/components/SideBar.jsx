@@ -87,25 +87,37 @@ function SideBar({ height, maxHeight }) {
   return (
     <>
       {authInfo ? (
-        <div className="flex bg-blue-gray-50 w-full  " style={{ zoom: 0.9 }}>
+        <div className="flex bg-blue-gray-50 w-full" style={{ zoom: 0.9 }}>
           <Card
-            className={`h-${height} h-[${maxHeight}] w-full max-w-[18rem] pt-4 pl-4 pr-0 rounded-none shadow-xl shadow-blue-gray-100 overflow-y-auto scrollbar fixed z-10 h-full bg-gray-50 border-t-2 ${isSidebarVisible ? "block" : "hidden"
+            className={`h-${height} max-h-[${maxHeight}] w-full max-w-[17rem] pt-6 pr-2 rounded-none shadow-2xl shadow-blue-gray-900/5 overflow-y-auto scrollbar fixed z-10 h-full bg-gray-50 border-r border-gray-100 transition-all duration-300 ${isSidebarVisible ? "translate-x-0" : "-translate-x-full"
               }`}
           >
-            <List className="mt-16 mr-0 ">
+            <div className="mb-6 px-4">
+              <Typography variant="h5" color="blue-gray" className="font-extrabold tracking-tight opacity-80">
+                PMRS <span className="text-blue-600">Portal</span>
+              </Typography>
+            </div>
+
+            <List className="gap-1 px-2">
               <Link to={`/Home/Dashboard`}>
-                <Accordion open={open === 1} onClick={() => handleOpen(1)}>
-                  <ListItem className="p-0 2xl:origin-left w-full  pr-0  2xl:left-0 2xl:m-0" selected={open === 1}>
-                    <AccordionHeader className="border-b-0 2xl:scale-90 left-0 p-0 -ml-3 w-full pl-3 pt-3 pb-3  hover:text-light-blue-700">
-                      <ListItemPrefix>
-                        <FontAwesomeIcon icon={faChartColumn} />
-                      </ListItemPrefix>
-                      <Typography className="mr-auto font-custom text-lg font-light">
-                        {t("MAIN.SIDEBAR.DASHBOARD")}
-                      </Typography>
-                    </AccordionHeader>
-                  </ListItem>
-                </Accordion>
+                <ListItem
+                  className={`group py-3 px-4 rounded-xl transition-all duration-200 hover:bg-blue-50/50 ${open === 1 ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-blue-gray-700'}`}
+                  onClick={() => handleOpen(1)}
+                  selected={open === 1}
+                >
+                  <ListItemPrefix className="mr-3">
+                    <FontAwesomeIcon
+                      icon={faChartColumn}
+                      className={`text-lg transition-colors ${open === 1 ? 'text-blue-600' : 'text-blue-gray-400 group-hover:text-blue-500'}`}
+                    />
+                  </ListItemPrefix>
+                  <Typography className="font-bold text-sm tracking-wide">
+                    {t("MAIN.SIDEBAR.DASHBOARD")}
+                  </Typography>
+                  {open === 1 && (
+                    <div className="absolute left-0 w-1 h-6 bg-blue-600 rounded-r-full" />
+                  )}
+                </ListItem>
               </Link>
               <Accordion
 
@@ -120,15 +132,15 @@ function SideBar({ height, maxHeight }) {
               >
                 {authInfo.user.userPermissions.includes("readUser") ||
                   authInfo.user.userPermissions.includes("readAdmin") ? (
-                  <ListItem className="p-0 2xl:origin-left w-full  pr-0  2xl:left-0 2xl:m-0" selected={open === 2}>
+                  <ListItem className="p-0 rounded-xl" selected={open === 2}>
                     <AccordionHeader
                       onClick={() => handleOpen(2)}
-                      className="border-b-0 2xl:scale-90 left-0 p-0 -ml-3 w-full pl-3 pt-3 pb-3  hover:text-light-blue-700"
+                      className={`border-b-0 py-3 px-4 rounded-xl transition-all duration-200 hover:bg-blue-50/50 ${open === 2 ? 'text-blue-700 bg-blue-50/30' : 'text-blue-gray-700'}`}
                     >
-                      <ListItemPrefix>
-                        <FontAwesomeIcon icon={faTableCellsLarge} />
+                      <ListItemPrefix className="mr-3">
+                        <FontAwesomeIcon icon={faTableCellsLarge} className={`text-lg transition-colors ${open === 2 ? 'text-blue-600' : 'text-blue-gray-400 group-hover:text-blue-500'}`} />
                       </ListItemPrefix>
-                      <Typography className="mr-auto font-normal">
+                      <Typography className="mr-auto font-bold text-sm tracking-wide">
                         {t("MAIN.SIDEBAR.UMS.UMS")}
                       </Typography>
                     </AccordionHeader>
@@ -138,36 +150,22 @@ function SideBar({ height, maxHeight }) {
                 )}
 
                 <AccordionBody className="py-1">
-                  <List className="p-0 2xl:scale-90 2xl:origin-left  2xl:left-0 2xl:m-0">
+                  <List className="p-0 gap-1 ml-4">
                     {authInfo.user.userPermissions.includes("readUser") ||
                       authInfo.user.userPermissions.includes("readAdmin") ? (
                       <Link to={`/Home/Admin`}>
                         <ListItem
                           onClick={() => handleInnerCLick()}
-                          className="hover:text-light-blue-700  focus:text-light-blue-700 active:text-light-blue-700"
+                          className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                         >
-                          <ListItemPrefix>
-                            <svg
-                              width="4"
-                              height="5"
-                              viewBox="0 0 4 5"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <rect
-                                y="0.5"
-                                width="4"
-                                height="4"
-                                rx="2"
-                                fill="#94A3B8"
-                              />
-                            </svg>
+                          <ListItemPrefix className="mr-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                           </ListItemPrefix>
                           {t("MAIN.SIDEBAR.UMS.USER.USER")}
                         </ListItem>
                       </Link>
                     ) : (
-                      <div></div>
+                      <div />
                     )}
                   </List>
                 </AccordionBody>
@@ -183,16 +181,15 @@ function SideBar({ height, maxHeight }) {
                 }
               >
                 {authInfo.user.userPermissions.includes("readRole") ? (
-
-                  <ListItem className="p-0 2xl:origin-left w-full  pr-0  2xl:left-0 2xl:m-0" selected={open === 3}>
+                  <ListItem className="p-0 rounded-xl" selected={open === 3}>
                     <AccordionHeader
                       onClick={() => handleOpen(3)}
-                      className="border-b-0 2xl:scale-90 left-0 p-0 -ml-3 w-full pl-3 pt-3 pb-3  hover:text-light-blue-700"
+                      className={`border-b-0 py-3 px-4 rounded-xl transition-all duration-200 hover:bg-blue-50/50 ${open === 3 ? 'text-blue-700 bg-blue-50/30' : 'text-blue-gray-700'}`}
                     >
-                      <ListItemPrefix>
-                        <FontAwesomeIcon icon={faTrophy} />{" "}
+                      <ListItemPrefix className="mr-3">
+                        <FontAwesomeIcon icon={faTrophy} className={`text-lg transition-colors ${open === 3 ? 'text-blue-600' : 'text-blue-gray-400 group-hover:text-blue-500'}`} />
                       </ListItemPrefix>
-                      <Typography className="mr-auto font-normal">
+                      <Typography className="mr-auto font-bold text-sm tracking-wide">
                         {t("MAIN.SIDEBAR.ROLE.ROLE")}
                       </Typography>
                     </AccordionHeader>
@@ -202,30 +199,14 @@ function SideBar({ height, maxHeight }) {
                 )}
 
                 <AccordionBody className="py-1">
-                  <List className="p-0 2xl:scale-90 2xl:origin-left  2xl:left-0 2xl:m-0">
+                  <List className="p-0 gap-1 ml-4">
                     <Link to={`/Home/Role`}>
                       <ListItem
-                        onClick={() => {
-                          handleInnerCLick();
-                        }}
-                        className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700 "
+                        onClick={() => handleInnerCLick()}
+                        className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                       >
-                        <ListItemPrefix>
-                          <svg
-                            width="4"
-                            height="5"
-                            viewBox="0 0 4 5"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <rect
-                              y="0.5"
-                              width="4"
-                              height="4"
-                              rx="2"
-                              fill="#94A3B8"
-                            />
-                          </svg>
+                        <ListItemPrefix className="mr-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                         </ListItemPrefix>
                         {t("MAIN.SIDEBAR.ROLE.ROLE")}
                       </ListItem>
@@ -245,66 +226,40 @@ function SideBar({ height, maxHeight }) {
               >
 
 
-                <ListItem className="p-0 2xl:origin-left w-full  pr-0  2xl:left-0 2xl:m-0" selected={open === 9}>
+                <ListItem className="p-0 rounded-xl" selected={open === 9}>
                   <AccordionHeader
                     onClick={() => handleOpen(9)}
-                    className="border-b-0 2xl:scale-90 left-0 p-0 -ml-3 w-full pl-3 pt-3 pb-3  hover:text-light-blue-700"
+                    className={`border-b-0 py-3 px-4 rounded-xl transition-all duration-200 hover:bg-blue-50/50 ${open === 9 ? 'text-blue-700 bg-blue-50/30' : 'text-blue-gray-700'}`}
                   >
-                    <ListItemPrefix>
-                      <TbRulerMeasure />
+                    <ListItemPrefix className="mr-3">
+                      <TbRulerMeasure className={`text-lg transition-colors ${open === 9 ? 'text-blue-600' : 'text-blue-gray-400 group-hover:text-blue-500'}`} />
                     </ListItemPrefix>
-                    <Typography className="mr-auto font-normal">
-                      {t(
-                        "MAIN.SIDEBAR.MEASUREMENTMANAGEMENT.MEASUREMENTMANAGEMENT"
-                      )}
+                    <Typography className="mr-auto font-bold text-sm tracking-wide">
+                      {t("MAIN.SIDEBAR.MEASUREMENTMANAGEMENT.MEASUREMENTMANAGEMENT")}
                     </Typography>
                   </AccordionHeader>
                 </ListItem>
                 <AccordionBody className="py-1">
-                  <List className="p-0 2xl:scale-90 2xl:origin-left  2xl:left-0 2xl:m-0">
+                  <List className="p-0 gap-1 ml-4">
                     <Link to={`/Home/MeasureManagement`}>
-                      <ListItem className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700">
-                        <ListItemPrefix>
-                          <svg
-                            width="4"
-                            height="5"
-                            viewBox="0 0 4 5"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <rect
-                              y="0.5"
-                              width="4"
-                              height="4"
-                              rx="2"
-                              fill="#94A3B8"
-                            />
-                          </svg>
+                      <ListItem
+                        onClick={() => handleInnerCLick()}
+                        className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
+                      >
+                        <ListItemPrefix className="mr-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                         </ListItemPrefix>
-                        {t(
-                          "MAIN.SIDEBAR.MEASUREMENTMANAGEMENT.MEASUREMENT.MEASUREMENT"
-                        )}
+                        {t("MAIN.SIDEBAR.MEASUREMENTMANAGEMENT.MEASUREMENT.MEASUREMENT")}
                       </ListItem>
                     </Link>
 
                     <Link to={`/Home/Unite`}>
-                      <ListItem className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700">
-                        <ListItemPrefix>
-                          <svg
-                            width="4"
-                            height="5"
-                            viewBox="0 0 4 5"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <rect
-                              y="0.5"
-                              width="4"
-                              height="4"
-                              rx="2"
-                              fill="#94A3B8"
-                            />
-                          </svg>
+                      <ListItem
+                        onClick={() => handleInnerCLick()}
+                        className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
+                      >
+                        <ListItemPrefix className="mr-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                         </ListItemPrefix>
                         {t("MAIN.SIDEBAR.MEASUREMENTMANAGEMENT.UNITE.UNITE")}
                       </ListItem>
@@ -322,168 +277,85 @@ function SideBar({ height, maxHeight }) {
                   />
                 }
               >
-                <ListItem className="p-0 2xl:origin-left w-full  pr-0  2xl:left-0 2xl:m-0" selected={open === 4}>
+                <ListItem className="p-0 rounded-xl" selected={open === 4}>
                   <AccordionHeader
                     onClick={() => handleOpen(4)}
-                    className="border-b-0 2xl:scale-90 left-0 p-0 -ml-3 w-full pl-3 pt-3 pb-3  hover:text-light-blue-700"
+                    className={`border-b-0 py-3 px-4 rounded-xl transition-all duration-200 hover:bg-blue-50/50 ${open === 4 ? 'text-blue-700 bg-blue-50/30' : 'text-blue-gray-700'}`}
                   >
-                    <ListItemPrefix className="">
-                      <FontAwesomeIcon icon={faCircleDot} />{" "}
+                    <ListItemPrefix className="mr-3">
+                      <FontAwesomeIcon icon={faCircleDot} className={`text-lg transition-colors ${open === 4 ? 'text-blue-600' : 'text-blue-gray-400 group-hover:text-blue-500'}`} />
                     </ListItemPrefix>
-                    <Typography className="mr-auto font-normal">
+                    <Typography className="mr-auto font-bold text-sm tracking-wide">
                       {t("MAIN.SIDEBAR.PLAN.PLAN")}
                     </Typography>
                   </AccordionHeader>
                 </ListItem>
                 <AccordionBody className="py-1">
-                  <List className="p-0 pt-0 mt-0 top-0 2xl:scale-90 2xl:origin-left 2xl:left-0 2xl:m-0">
-                    {authInfo.user.userPermissions.includes(
-                      "readStrategicGoal"
-                    ) ? (
+                  <List className="p-0 gap-1 ml-4">
+                    {authInfo.user.userPermissions.includes("readStrategicGoal") && (
                       <Link to={`/Home/StrategicGoal`}>
                         <ListItem
                           onClick={() => handleInnerCLick()}
-                          className="hover:text-light-blue-700 !mt-0 !pt-0 focus:text-light-blue-700 active:text-light-blue-700"                        >
-                          <ListItemPrefix>
-                            <svg
-                              width="4"
-                              height="5"
-                              viewBox="0 0 4 5"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <rect
-                                y="0.5"
-                                width="4"
-                                height="4"
-                                rx="2"
-                                fill="#94A3B8"
-                              />
-                            </svg>
+                          className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
+                        >
+                          <ListItemPrefix className="mr-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                           </ListItemPrefix>
                           {t("MAIN.SIDEBAR.PLAN.STRATEGIC_GOAL.STRATEGIC_GOAL")}
                         </ListItem>
                       </Link>
-                    ) : (
-                      <div></div>
                     )}
-                    {authInfo.user.userPermissions.includes(
-                      "readMainActivity"
-                    ) ? (
+                    {authInfo.user.userPermissions.includes("readMainActivity") && (
                       <Link to={`/Home/MainGoal`}>
                         <ListItem
                           onClick={() => handleInnerCLick()}
-                          className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700 "
+                          className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                         >
-                          <ListItemPrefix>
-                            <svg
-                              width="4"
-                              height="5"
-                              viewBox="0 0 4 5"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <rect
-                                y="0.5"
-                                width="4"
-                                height="4"
-                                rx="2"
-                                fill="#94A3B8"
-                              />
-                            </svg>
+                          <ListItemPrefix className="mr-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                           </ListItemPrefix>
                           {t("MAIN.SIDEBAR.PLAN.MAIN_GOAL.MAIN_GOAL")}
                         </ListItem>
                       </Link>
-                    ) : (
-                      <div></div>
                     )}
-                    {authInfo.user.userPermissions.includes("readKpi") ? (
+                    {authInfo.user.userPermissions.includes("readKpi") && (
                       <Link to={`/Home/kpiall`}>
                         <ListItem
                           onClick={() => handleInnerCLick()}
-                          className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700 "
+                          className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                         >
-                          <ListItemPrefix>
-                            <svg
-                              width="4"
-                              height="5"
-                              viewBox="0 0 4 5"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <rect
-                                y="0.5"
-                                width="4"
-                                height="4"
-                                rx="2"
-                                fill="#94A3B8"
-                              />
-                            </svg>
+                          <ListItemPrefix className="mr-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                           </ListItemPrefix>
                           {t("MAIN.SIDEBAR.PLAN.KPIALL.KPI")}
                         </ListItem>
                       </Link>
-                    ) : (
-                      <div></div>
                     )}
-                    {authInfo.user.userPermissions.includes("readKpi") ? (
+                    {authInfo.user.userPermissions.includes("readKpi") && (
                       <Link to={`/Home/Kpi3`}>
                         <ListItem
                           onClick={() => handleInnerCLick()}
-                          className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700 "
+                          className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                         >
-                          <ListItemPrefix>
-                            <svg
-                              width="4"
-                              height="5"
-                              viewBox="0 0 4 5"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <rect
-                                y="0.5"
-                                width="4"
-                                height="4"
-                                rx="2"
-                                fill="#94A3B8"
-                              />
-                            </svg>
+                          <ListItemPrefix className="mr-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                           </ListItemPrefix>
                           {t("MAIN.SIDEBAR.PLAN.KPI3.KPI")}
                         </ListItem>
                       </Link>
-                    ) : (
-                      <div></div>
                     )}
-                    {authInfo.user.userPermissions.includes("readKpi") ? (
+                    {authInfo.user.userPermissions.includes("readKpi") && (
                       <Link to={`/Home/Kpi`}>
                         <ListItem
                           onClick={() => handleInnerCLick()}
-                          className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700 "
+                          className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                         >
-                          <ListItemPrefix>
-                            <svg
-                              width="4"
-                              height="5"
-                              viewBox="0 0 4 5"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <rect
-                                y="0.5"
-                                width="4"
-                                height="4"
-                                rx="2"
-                                fill="#94A3B8"
-                              />
-                            </svg>
+                          <ListItemPrefix className="mr-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                           </ListItemPrefix>
                           {t("MAIN.SIDEBAR.PLAN.KPI.KPI")}
                         </ListItem>
                       </Link>
-                    ) : (
-                      <div></div>
                     )}
                     {/* {authInfo.user.userPermissions.includes("readMeasure") ? (
                       <Link to={`/Home/Measure`}>
@@ -517,24 +389,10 @@ function SideBar({ height, maxHeight }) {
                     <Link to={`/Home/PlanSummary`}>
                       <ListItem
                         onClick={() => handleInnerCLick()}
-                        className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700"
+                        className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                       >
-                        <ListItemPrefix>
-                          <svg
-                            width="4"
-                            height="5"
-                            viewBox="0 0 4 5"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <rect
-                              y="0.5"
-                              width="4"
-                              height="4"
-                              rx="2"
-                              fill="#94A3B8"
-                            />
-                          </svg>
+                        <ListItemPrefix className="mr-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                         </ListItemPrefix>
                         {t("MAIN.SIDEBAR.PLAN.PLAN_SUMMARY.PLAN_SUMMARY")}
                       </ListItem>
@@ -542,83 +400,24 @@ function SideBar({ height, maxHeight }) {
                     <Link to={`/Home/GeneratePlanTable`}>
                       <ListItem
                         onClick={() => handleInnerCLick()}
-                        className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700 "
+                        className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                       >
-                        <ListItemPrefix>
-                          <svg
-                            width="4"
-                            height="5"
-                            viewBox="0 0 4 5"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <rect
-                              y="0.5"
-                              width="4"
-                              height="4"
-                              rx="2"
-                              fill="#94A3B8"
-                            />
-                          </svg>
+                        <ListItemPrefix className="mr-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                         </ListItemPrefix>
-                        {t(
-                          "MAIN.SIDEBAR.PLAN.GENERATE_PLAN_TABLE.GENERATE_PLAN_TABLE"
-                        )}
+                        {t("MAIN.SIDEBAR.PLAN.GENERATE_PLAN_TABLE.GENERATE_PLAN_TABLE")}
                       </ListItem>
                     </Link>
                     <Link to={`/Home/GenerateThreeyearTable`}>
                       <ListItem
                         onClick={() => handleInnerCLick()}
-                        className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700 "
+                        className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                       >
-                        <ListItemPrefix>
-                          <svg
-                            width="4"
-                            height="5"
-                            viewBox="0 0 4 5"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <rect
-                              y="0.5"
-                              width="4"
-                              height="4"
-                              rx="2"
-                              fill="#94A3B8"
-                            />
-                          </svg>
+                        <ListItemPrefix className="mr-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                         </ListItemPrefix>
-                        {t(
-                          "MAIN.SIDEBAR.PLAN.GENERATE_PLAN_TABLE.GENERATE_THREE_YEAR_PLAN_TABLE"
-                        )}
+                        {t("MAIN.SIDEBAR.PLAN.GENERATE_PLAN_TABLE.GENERATE_THREE_YEAR_PLAN_TABLE")}
                       </ListItem>
-                    </Link>
-                    <Link to={`/Home/GenerateFinalPlanTable`}>
-                      {/* <ListItem
-                        onClick={() => handleInnerCLick()}
-                        className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700"
-                      >
-                        <ListItemPrefix>
-                          <svg
-                            width="4"
-                            height="5"
-                            viewBox="0 0 4 5"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <rect
-                              y="0.5"
-                              width="4"
-                              height="4"
-                              rx="2"
-                              fill="#94A3B8"
-                            />
-                          </svg>
-                        </ListItemPrefix>
-                        {t(
-                          "MAIN.SIDEBAR.PLAN.GENERATE_FINAL_PLAN.GENERATE_FINAL_PLAN"
-                        )}
-                      </ListItem> */}
                     </Link>
                   </List>
                 </AccordionBody>
@@ -633,162 +432,81 @@ function SideBar({ height, maxHeight }) {
                   />
                 }
               >
-                <ListItem className="p-0 2xl:origin-left w-full  pr-0  2xl:left-0 2xl:m-0" selected={open === 5}>
+                <ListItem className="p-0 rounded-xl" selected={open === 5}>
                   <AccordionHeader
                     onClick={() => handleOpen(5)}
-                    className="border-b-0 2xl:scale-90 left-0 p-0 -ml-3 w-full pl-3 pt-3 pb-3  hover:text-light-blue-700"
+                    className={`border-b-0 py-3 px-4 rounded-xl transition-all duration-200 hover:bg-blue-50/50 ${open === 5 ? 'text-blue-700 bg-blue-50/30' : 'text-blue-gray-700'}`}
                   >
-                    <ListItemPrefix>
-                      <FontAwesomeIcon icon={faChartPie} />{" "}
+                    <ListItemPrefix className="mr-3">
+                      <FontAwesomeIcon icon={faChartPie} className={`text-lg transition-colors ${open === 5 ? 'text-blue-600' : 'text-blue-gray-400 group-hover:text-blue-500'}`} />
                     </ListItemPrefix>
-                    <Typography className="mr-auto font-normal">
+                    <Typography className="mr-auto font-bold text-sm tracking-wide">
                       {t("MAIN.SIDEBAR.REPORT.REPORT")}
                     </Typography>
                   </AccordionHeader>
                 </ListItem>
                 <AccordionBody className="py-1">
-                  <List className="p-0 2xl:scale-90 2xl:origin-left  2xl:left-0 2xl:m-0">
-                    {authInfo.user.division_id &&  (
+                  <List className="p-0 gap-1 ml-4">
+                    {authInfo.user.division_id && (
                       <Link to={`/Home/KpiDescription`}>
                         <ListItem
                           onClick={() => handleInnerCLick()}
-                          className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700"
+                          className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                         >
-                          <ListItemPrefix>
-                            <svg
-                              width="4"
-                              height="5"
-                              viewBox="0 0 4 5"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <rect
-                                y="0.5"
-                                width="4"
-                                height="4"
-                                rx="2"
-                                fill="#94A3B8"
-                              />
-                            </svg>
+                          <ListItemPrefix className="mr-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                           </ListItemPrefix>
-                          {t(
-                            "MAIN.SIDEBAR.REPORT.KPI_DESCRIPTION.KPI_DESCRIPTION"
-                          )}
+                          {t("MAIN.SIDEBAR.REPORT.KPI_DESCRIPTION.KPI_DESCRIPTION")}
                         </ListItem>
                       </Link>
                     )}
-                    {authInfo.user.userPermissions.includes("readSummmary") ? (
+                    {authInfo.user.userPermissions.includes("readSummmary") && (
                       <Link to={`/Home/Summary`}>
                         <ListItem
                           onClick={() => handleInnerCLick()}
-                          className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700"
+                          className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                         >
-                          <ListItemPrefix>
-                            <svg
-                              width="4"
-                              height="5"
-                              viewBox="0 0 4 5"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <rect
-                                y="0.5"
-                                width="4"
-                                height="4"
-                                rx="2"
-                                fill="#94A3B8"
-                              />
-                            </svg>
+                          <ListItemPrefix className="mr-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                           </ListItemPrefix>
                           {t("MAIN.SIDEBAR.REPORT.SUMMARY.SUMMARY")}
                         </ListItem>
                       </Link>
-                    ) : (
-                      <div></div>
                     )}
 
-                    {/*  */}
                     <Link to={`/Home/GenerateThreeReportTable`}>
                       <ListItem
                         onClick={() => handleInnerCLick()}
-                        className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700"
+                        className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                       >
-                        <ListItemPrefix>
-                          <svg
-                            width="4"
-                            height="5"
-                            viewBox="0 0 4 5"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <rect
-                              y="0.5"
-                              width="4"
-                              height="4"
-                              rx="2"
-                              fill="#94A3B8"
-                            />
-                          </svg>
+                        <ListItemPrefix className="mr-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                         </ListItemPrefix>
-                        {t(
-                          "MAIN.SIDEBAR.REPORT.GENERATE_THREE_YEAR_REPORT_TABLE.GENERATE_REPORT_TABLE"
-                        )}
+                        {t("MAIN.SIDEBAR.REPORT.GENERATE_THREE_YEAR_REPORT_TABLE.GENERATE_REPORT_TABLE")}
                       </ListItem>
                     </Link>
 
                     <Link to={`/Home/GenerateReportTable`}>
                       <ListItem
                         onClick={() => handleInnerCLick()}
-                        className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700"
+                        className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                       >
-                        <ListItemPrefix>
-                          <svg
-                            width="4"
-                            height="5"
-                            viewBox="0 0 4 5"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <rect
-                              y="0.5"
-                              width="4"
-                              height="4"
-                              rx="2"
-                              fill="#94A3B8"
-                            />
-                          </svg>
+                        <ListItemPrefix className="mr-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                         </ListItemPrefix>
-                        {t(
-                          "MAIN.SIDEBAR.REPORT.GENERATE_REPORT_TABLE.GENERATE_REPORT_TABLE"
-                        )}
+                        {t("MAIN.SIDEBAR.REPORT.GENERATE_REPORT_TABLE.GENERATE_REPORT_TABLE")}
                       </ListItem>
                     </Link>
 
                     <Link to={`/Home/GenerateFinalReportTable`}>
                       <ListItem
                         onClick={() => handleInnerCLick()}
-                        className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700"
+                        className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                       >
-                        <ListItemPrefix>
-                          <svg
-                            width="4"
-                            height="5"
-                            viewBox="0 0 4 5"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <rect
-                              y="0.5"
-                              width="4"
-                              height="4"
-                              rx="2"
-                              fill="#94A3B8"
-                            />
-                          </svg>
+                        <ListItemPrefix className="mr-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                         </ListItemPrefix>
-                        {t(
-                          "MAIN.SIDEBAR.REPORT.GENERATE_FINAL_REPORT.GENERATE_FINAL_REPORT"
-                        )}
+                        {t("MAIN.SIDEBAR.REPORT.GENERATE_FINAL_REPORT.GENERATE_FINAL_REPORT")}
                       </ListItem>
                     </Link>
                   </List>
@@ -805,45 +523,30 @@ function SideBar({ height, maxHeight }) {
                 }
               >
 
-                <ListItem className="p-0 2xl:origin-left w-full  pr-0  2xl:left-0 2xl:m-0" selected={open === 6}>
+                <ListItem className="p-0 rounded-xl" selected={open === 6}>
                   <AccordionHeader
                     onClick={() => handleOpen(6)}
-                    className="border-b-0 2xl:scale-90 left-0 p-0 -ml-3 w-full pl-3 pt-3 pb-3  hover:text-light-blue-700"
+                    className={`border-b-0 py-3 px-4 rounded-xl transition-all duration-200 hover:bg-blue-50/50 ${open === 6 ? 'text-blue-700 bg-blue-50/30' : 'text-blue-gray-700'}`}
                   >
-                    <ListItemPrefix>
-                      <FontAwesomeIcon icon={faBookOpen} />{" "}
+                    <ListItemPrefix className="mr-3">
+                      <FontAwesomeIcon icon={faBookOpen} className={`text-lg transition-colors ${open === 6 ? 'text-blue-600' : 'text-blue-gray-400 group-hover:text-blue-500'}`} />
                     </ListItemPrefix>
-                    <Typography className="mr-auto font-normal">
+                    <Typography className="mr-auto font-bold text-sm tracking-wide">
                       {t("MAIN.SIDEBAR.TRACKING.TRACKING")}
                     </Typography>
                   </AccordionHeader>
                 </ListItem>
-                <AccordionBody className="py-1 ">
-                  <List className="p-0 2xl:scale-90 2xl:origin-left  2xl:left-0 2xl:m-0">
-
-                    {authInfo.user.userPermissions.includes(
-                      "createAssignMain"
-                    ) &&
-                      authInfo.user.userPermissions.includes("readAssign") &&
+                <AccordionBody className="py-1">
+                  <List className="p-0 gap-1 ml-4">
+                    {authInfo.user.userPermissions.includes("createAssignMain") &&
                       authInfo.user.userPermissions.includes("readAssign") && (
-                        <Link className="2xl:scale-90 2xl:origin-left  2xl:left-0 2xl:m-0" to={`/Home/DivisionTracking`}>
-                          <ListItem className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700">
-                            <ListItemPrefix>
-                              <svg
-                                width="4"
-                                height="5"
-                                viewBox="0 0 4 5"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <rect
-                                  y="0.5"
-                                  width="4"
-                                  height="4"
-                                  rx="2"
-                                  fill="#94A3B8"
-                                />
-                              </svg>
+                        <Link to={`/Home/DivisionTracking`}>
+                          <ListItem
+                            onClick={() => handleInnerCLick()}
+                            className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
+                          >
+                            <ListItemPrefix className="mr-3">
+                              <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                             </ListItemPrefix>
                             {t("MAIN.SIDEBAR.TRACKING.DIVISION.DIVISION")}
                           </ListItem>
@@ -853,23 +556,12 @@ function SideBar({ height, maxHeight }) {
                     {authInfo.user.userPermissions.includes("createKpiTrack") &&
                       !authInfo.user.userPermissions.includes("readAssign") && (
                         <Link to={`/Home/TeamTracking`}>
-                          <ListItem className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700">
-                            <ListItemPrefix>
-                              <svg
-                                width="4"
-                                height="5"
-                                viewBox="0 0 4 5"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <rect
-                                  y="0.5"
-                                  width="4"
-                                  height="4"
-                                  rx="2"
-                                  fill="#94A3B8"
-                                />
-                              </svg>
+                          <ListItem
+                            onClick={() => handleInnerCLick()}
+                            className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
+                          >
+                            <ListItemPrefix className="mr-3">
+                              <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                             </ListItemPrefix>
                             {t("MAIN.SIDEBAR.TRACKING.TEAM.TEAM")}
                           </ListItem>
@@ -877,27 +569,14 @@ function SideBar({ height, maxHeight }) {
                       )}
 
                     {authInfo.user.userPermissions.includes("readKpiTrack") &&
-                      !authInfo.user.userPermissions.includes(
-                        "createKpiTrack"
-                      ) && (
+                      !authInfo.user.userPermissions.includes("createKpiTrack") && (
                         <Link to={`/Home/TeamTracking`}>
-                          <ListItem className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700">
-                            <ListItemPrefix>
-                              <svg
-                                width="4"
-                                height="5"
-                                viewBox="0 0 4 5"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <rect
-                                  y="0.5"
-                                  width="4"
-                                  height="4"
-                                  rx="2"
-                                  fill="#94A3B8"
-                                />
-                              </svg>
+                          <ListItem
+                            onClick={() => handleInnerCLick()}
+                            className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
+                          >
+                            <ListItemPrefix className="mr-3">
+                              <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                             </ListItemPrefix>
                             {t("MAIN.SIDEBAR.TRACKING.TEAM.TEAM")}
                           </ListItem>
@@ -919,17 +598,17 @@ function SideBar({ height, maxHeight }) {
                 {authInfo.user.userPermissions.includes("readDivision") ||
                   authInfo.user.userPermissions.includes("readMonitoring") ||
                   authInfo.user.userPermissions.includes("readSector") ? (
-                  <ListItem className="!mt-0 !pt-0 p-0 2xl:scale-90 2xl:origin-left  2xl:left-0 2xl:m-0" selected={open === 7}>
+                  <ListItem className="p-0 rounded-xl" selected={open === 7}>
                     <AccordionHeader
                       onClick={() => handleOpen(7)}
-                      className="border-b-0 p-3 hover:text-light-blue-700"
+                      className={`border-b-0 py-3 px-4 rounded-xl transition-all duration-200 hover:bg-blue-50/50 ${open === 7 ? 'text-blue-700 bg-blue-50/30' : 'text-blue-gray-700'}`}
                     >
-                      <ListItemPrefix>
+                      <ListItemPrefix className="mr-3">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 20 20"
                           fill="currentColor"
-                          className="w-5 h-5"
+                          className={`w-5 h-5 transition-colors ${open === 7 ? 'text-blue-600' : 'text-blue-gray-400 group-hover:text-blue-500'}`}
                         >
                           <path
                             fillRule="evenodd"
@@ -938,133 +617,69 @@ function SideBar({ height, maxHeight }) {
                           />
                         </svg>
                       </ListItemPrefix>
-                      <Typography className="mr-auto font-normal">
+                      <Typography className="mr-auto font-bold text-sm tracking-wide">
                         {t("MAIN.SIDEBAR.CLUSTER.CLUSTER")}
                       </Typography>
                     </AccordionHeader>
                   </ListItem>
                 ) : (
-                  <div></div>
+                  <div />
                 )}
 
                 <AccordionBody className="py-1">
-                  <List className="p-0 2xl:scale-90 2xl:origin-left  2xl:left-0 2xl:m-0">
-                    {authInfo.user.userPermissions.includes(
-                      "readMonitoring"
-                    ) ? (
+                  <List className="p-0 gap-1 ml-4">
+                    {authInfo.user.userPermissions.includes("readMonitoring") && (
                       <Link to={`/Home/Monitoring`}>
                         <ListItem
                           onClick={() => handleInnerCLick()}
-                          className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700"
+                          className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                         >
-                          <ListItemPrefix>
-                            <svg
-                              width="4"
-                              height="5"
-                              viewBox="0 0 4 5"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <rect
-                                y="0.5"
-                                width="4"
-                                height="4"
-                                rx="2"
-                                fill="#94A3B8"
-                              />
-                            </svg>
+                          <ListItemPrefix className="mr-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                           </ListItemPrefix>
                           {t("MAIN.SIDEBAR.CLUSTER.MONITORING.MONITORING")}
                         </ListItem>
                       </Link>
-                    ) : (
-                      <div></div>
                     )}
-                    {authInfo.user.userPermissions.includes("readSector") ? (
+                    {authInfo.user.userPermissions.includes("readSector") && (
                       <Link to={`/Home/Sector`}>
                         <ListItem
                           onClick={() => handleInnerCLick()}
-                          className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700"
+                          className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                         >
-                          <ListItemPrefix>
-                            <svg
-                              width="4"
-                              height="5"
-                              viewBox="0 0 4 5"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <rect
-                                y="0.5"
-                                width="4"
-                                height="4"
-                                rx="2"
-                                fill="#94A3B8"
-                              />
-                            </svg>
+                          <ListItemPrefix className="mr-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                           </ListItemPrefix>
                           {t("MAIN.SIDEBAR.CLUSTER.SECTOR.SECTOR")}
                         </ListItem>
                       </Link>
-                    ) : (
-                      <div></div>
                     )}
 
-                    {authInfo.user.userPermissions.includes("readDivision") ? (
+                    {authInfo.user.userPermissions.includes("readDivision") && (
                       <Link to={`/Home/Division`}>
                         <ListItem
                           onClick={() => handleInnerCLick()}
-                          className="hover:text-light-blue-700 focus:text-light-blue-700 active:text-light-blue-700"
+                          className="py-2.5 px-4 rounded-xl text-blue-gray-600 hover:text-blue-700 hover:bg-blue-50/40 text-xs font-semibold tracking-wide"
                         >
-                          <ListItemPrefix>
-                            <svg
-                              width="4"
-                              height="5"
-                              viewBox="0 0 4 5"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <rect
-                                y="0.5"
-                                width="4"
-                                height="4"
-                                rx="2"
-                                fill="#94A3B8"
-                              />
-                            </svg>
+                          <ListItemPrefix className="mr-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-gray-200 group-hover:bg-blue-400 transition-colors" />
                           </ListItemPrefix>
                           {t("MAIN.SIDEBAR.CLUSTER.DIVISION.DIVISION")}
                         </ListItem>
                       </Link>
-                    ) : (
-                      <div></div>
                     )}
                   </List>
                 </AccordionBody>
               </Accordion>
             </List>
           </Card>
-          <div className="grid gap-6 w-full  ">
+          <div className="flex flex-col flex-1 w-full min-h-screen">
             <NavBar onSidebarToggle={handleSidebarToggle} />
-            <div className="ml-3 mr-3 h-full" id="detail">
-              <div
-                className={
-                  isSidebarVisible
-                    ? "xl:ml-72 md:ml-72 sm:ml-0 mt-24  min-h-screen "
-                    : "mt-24 xl:w-full xl:ml-0 sm:ml-0  min-h-screen"
-                }
-              >
+            <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarVisible ? "xl:pl-[17rem]" : "xl:pl-0"}`}>
+              <div className="p-4 md:p-8 mt-16 flex-1" id="detail">
                 <Outlet />
               </div>
-            </div>
-            <div
-              className={
-                isSidebarVisible ? "xl:ml-72 md:ml-72 sm:ml-0 " : "w-full "
-              }
-            >
-              <div className=" w-full">
-                <Footer />
-              </div>
+              <Footer />
             </div>
           </div>
         </div>

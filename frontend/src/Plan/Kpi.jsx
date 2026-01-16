@@ -65,16 +65,16 @@ function Kpi() {
 
   //fetch kpi data
 
-  const [ kpiData ,setkpiData] = useState(null);
+  const [kpiData, setkpiData] = useState(null);
   const { divisionData } = useSelector((state) => state.division);
   const { sectorData } = useSelector((state) => state.sector);
 
-const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
 
-const currentYearGC = new Date().getFullYear(); 
-const currentMonthGC = new Date().getMonth() + 1; 
-const ethiopianYear = currentYearGC - 7 - (currentMonthGC < 9 ? 1 : 0);
-const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 2013 + index);
+  const currentYearGC = new Date().getFullYear();
+  const currentMonthGC = new Date().getMonth() + 1;
+  const ethiopianYear = currentYearGC - 7 - (currentMonthGC < 9 ? 1 : 0);
+  const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 2013 + index);
 
   const [selectedYear, setSelectedYear] = useState(ethiopianYear);
 
@@ -99,8 +99,8 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
           division: selectedDivision,
         },
       });
-       setkpiData(kpiData.data);
-    } catch (error) {}
+      setkpiData(kpiData.data);
+    } catch (error) { }
   };
 
   useEffect(() => {
@@ -268,31 +268,35 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
   const [totalPages, setTotalPages] = useState(0);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentPageData = kpiData
-    ? transformedData.slice(indexOfFirstItem, indexOfLastItem)
-    : [];
-  
-    const filteredData = currentPageData
+
+  const allFilteredData = (transformedData || [])
     ?.map(item => {
       // Filter KPIs that match the search term
       const matchingKpis = item.kpi?.filter(kpi =>
         kpi.kpi_name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
-  
-      // Keep the item if at least one kpi matched
-      if (matchingKpis.length > 0) {
+
+      // Also check if the parent kpi_name matches
+      const parentMatch = item.kpi_name?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Keep the item if at least one kpi matched or the parent matches
+      if (matchingKpis?.length > 0 || parentMatch) {
         return {
           ...item,
-          kpi: matchingKpis, // Only include matching KPIs
+          kpi: parentMatch ? item.kpi : matchingKpis,
         };
       }
-  
+
       return null; // Discard items with no matching KPIs
     })
-    .filter(Boolean); // Remove nulls
-  
+    .filter(Boolean);
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const filteredData = allFilteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+
+
   const { uniteData } = useSelector((state) => state.unite);
 
   useEffect(() => {
@@ -1023,7 +1027,7 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
             division_id,
             sector_id: authInfo?.user?.sector_id || null, // Prevents errors if authInfo is missing
             operation: operations,
-            incremental:isIncremental,
+            incremental: isIncremental,
           });
 
           return acc;
@@ -1044,11 +1048,11 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
   useEffect(() => {
     const calculateTotalPages = () => {
       setTotalPages(
-        Math.ceil(kpiData ? transformedData.length / itemsPerPage : [])
+        Math.ceil(allFilteredData.length / itemsPerPage)
       );
     };
     calculateTotalPages();
-  }, [transformedData, itemsPerPage]);
+  }, [allFilteredData, itemsPerPage]);
 
   // Function to handle next page button click
   const handleNextPage = () => {
@@ -1117,10 +1121,10 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
 
   useEffect(() => {
     const avgKeywords = ["average", "Average", "መቶኛ", "በመቶኛ", "በመቶ"];
-  
+
     if (measure && measureData.length > 0) {
       const selectedMeasure = measureData.find((item) => item.id === measure);
-  
+
       if (selectedMeasure && avgKeywords.includes(selectedMeasure.name.trim())) {
         setOperation("average");
       } else {
@@ -1128,102 +1132,102 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
       }
     }
   }, [measure, measureData]);
-  
-  
+
+
 
   return (
     <>
-            <Card className="rounded-md">
-              <div className="ml-6 mt-5"></div>
-              <CardBody className="xl:flex md:grid items-center xl:gap-10 sm:gap-5">
-                <div className="grid gap-2">
-                  <h1 className="whitespace-nowrap text-left text-md font-bold text-black">
-                    {t("MAIN.TABLE.YEAR")}
-                  </h1>
-                  <Select
-                    label={t("MAIN.TABLE.SELECT_YEAR")}
-                    value={selectedYear}
-                    onChange={handleYearChange}
-                  >
-                    {years.map((year) => (
-                      <Option
-                        className="focus:text-light-blue-700 whitespace-nowrap text-left text-md font-medium text-black"
-                        key={year}
-                        value={year}
-                      >
-                        {year}
-                      </Option>
-                    ))}
-                  </Select>
-                </div>
-                {authInfo.user.userPermissions.includes("createAssign") && (
-                  <div className="grid gap-2">
-                    <h1 className="whitespace-nowrap text-left text-md font-bold text-black">
-                      {t("MAIN.TABLE.SECTOR")}
-                    </h1>
-                    <Select
-                      label={t("MAIN.TABLE.SELECT_SECTOR")}
-                      // value={selectedSector}
-                      onChange={(e) => setSelectedSector(e)}
-                    >
-                      {sectorData
-                        ? sectorData.map((sector) => (
-                            <Option
-                              key={sector.id}
-                              className="focus:text-light-blue-700 whitespace-nowrap text-left text-md font-medium text-black"
-                              value={sector.id}
-                            >
-                              {sector.name}
-                            </Option>
-                          ))
-                        : []}
-                    </Select>
-                  </div>
-                )}
-                {(authInfo.user.userPermissions.includes("createAssign") ||
-                  authInfo.user.userPermissions.includes("createMainActivity")) && (
-                  <div className="grid gap-2">
-                    <h1 className="whitespace-nowrap text-left text-md font-bold text-black">
-                      {t("MAIN.TABLE.DIVISION")}
-                    </h1>
-                    <Select
-                      label={t("MAIN.TABLE.SELECT_DIVISION")}
-                      onChange={(e) => setSelectedDivision(e)}
-                    >
-                      {divisionData
-                        ? divisionData.map((division) => (
-                            <Option
-                              key={division.id}
-                              value={division.id}
-                              className="focus:text-light-blue-700 whitespace-nowrap text-left text-md font-medium text-black"
-                            >
-                              {division.name}
-                            </Option>
-                          ))
-                        : []}
-                    </Select>
-                  </div>
-                )}
-              </CardBody>
-              <div className="flex justify-end gap-2 mb-5 mr-12">
-                <Button
-                  variant="text"
-                  size="md"
-                  className="flex items-center gap-1 hover:bg-blue-700 bg-blue-700 text-white focus:bg-blue-700 normal-case text-left text-sm font-bold"
-                  onClick={() => fetchkpiData()}
+      <Card className="rounded-md">
+        <div className="ml-6 mt-5"></div>
+        <CardBody className="xl:flex md:grid items-center xl:gap-10 sm:gap-5">
+          <div className="grid gap-2">
+            <h1 className="whitespace-nowrap text-left text-md font-bold text-black">
+              {t("MAIN.TABLE.YEAR")}
+            </h1>
+            <Select
+              label={t("MAIN.TABLE.SELECT_YEAR")}
+              value={selectedYear}
+              onChange={handleYearChange}
+            >
+              {years.map((year) => (
+                <Option
+                  className="focus:text-light-blue-700 whitespace-nowrap text-left text-md font-medium text-black"
+                  key={year}
+                  value={year}
                 >
-                  {t("MAIN.TABLE.FILTER")}
-                </Button>
-                <Button
-                variant="text"
-                size="sm"
-                className="flex items-center justify-center gap-1 hover:bg-blue-700 bg-blue-700 text-white focus:bg-blue-700 normal-case text-xs md:text-sm font-bold"
-                onClick={() => handleclear()}
+                  {year}
+                </Option>
+              ))}
+            </Select>
+          </div>
+          {authInfo.user.userPermissions.includes("createAssign") && (
+            <div className="grid gap-2">
+              <h1 className="whitespace-nowrap text-left text-md font-bold text-black">
+                {t("MAIN.TABLE.SECTOR")}
+              </h1>
+              <Select
+                label={t("MAIN.TABLE.SELECT_SECTOR")}
+                // value={selectedSector}
+                onChange={(e) => setSelectedSector(e)}
               >
-                {t("MAIN.TABLE.CLEAR")}
-              </Button>
+                {sectorData
+                  ? sectorData.map((sector) => (
+                    <Option
+                      key={sector.id}
+                      className="focus:text-light-blue-700 whitespace-nowrap text-left text-md font-medium text-black"
+                      value={sector.id}
+                    >
+                      {sector.name}
+                    </Option>
+                  ))
+                  : []}
+              </Select>
+            </div>
+          )}
+          {(authInfo.user.userPermissions.includes("createAssign") ||
+            authInfo.user.userPermissions.includes("createMainActivity")) && (
+              <div className="grid gap-2">
+                <h1 className="whitespace-nowrap text-left text-md font-bold text-black">
+                  {t("MAIN.TABLE.DIVISION")}
+                </h1>
+                <Select
+                  label={t("MAIN.TABLE.SELECT_DIVISION")}
+                  onChange={(e) => setSelectedDivision(e)}
+                >
+                  {divisionData
+                    ? divisionData.map((division) => (
+                      <Option
+                        key={division.id}
+                        value={division.id}
+                        className="focus:text-light-blue-700 whitespace-nowrap text-left text-md font-medium text-black"
+                      >
+                        {division.name}
+                      </Option>
+                    ))
+                    : []}
+                </Select>
               </div>
-            </Card>
+            )}
+        </CardBody>
+        <div className="flex justify-end gap-2 mb-5 mr-12">
+          <Button
+            variant="text"
+            size="md"
+            className="flex items-center gap-1 hover:bg-blue-700 bg-blue-700 text-white focus:bg-blue-700 normal-case text-left text-sm font-bold"
+            onClick={() => fetchkpiData()}
+          >
+            {t("MAIN.TABLE.FILTER")}
+          </Button>
+          <Button
+            variant="text"
+            size="sm"
+            className="flex items-center justify-center gap-1 hover:bg-blue-700 bg-blue-700 text-white focus:bg-blue-700 normal-case text-xs md:text-sm font-bold"
+            onClick={() => handleclear()}
+          >
+            {t("MAIN.TABLE.CLEAR")}
+          </Button>
+        </div>
+      </Card>
       <ToastContainer />
       {authInfo ? (
         <div className="grid gap-3 items-center">
@@ -1235,16 +1239,19 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
               <div className="flex items-center justify-between mt-5 gap-5">
                 <div>
                   <div className="w-full">
-                  <Input
-                        color="blue"
-                        size="sm"
-                        label={t("MAIN.TABLE.SEARCH")}
-                        icon={
-                          <MagnifyingGlassIcon className="h-5 w-5 cursor-pointer hover:text-light-blue-700" />
-                        }
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
+                    <Input
+                      color="blue"
+                      size="sm"
+                      label={t("MAIN.TABLE.SEARCH")}
+                      icon={
+                        <MagnifyingGlassIcon className="h-5 w-5 cursor-pointer hover:text-light-blue-700" />
+                      }
+                      value={searchTerm}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                    />
 
                   </div>
                 </div>
@@ -2934,7 +2941,7 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
           >
             <div className="w-11/12 flex items-center gap-5  justify-self-center">
               <Button className="rounded-full text-sm font-bold cursor-default w-2/6 bg-blue-700">
-                {firstQuarterGoal} {" " }{uniteData.find((unit) => unit.id === firstQuarterUnitId)?.symbol || ""}
+                {firstQuarterGoal} {" "}{uniteData.find((unit) => unit.id === firstQuarterUnitId)?.symbol || ""}
 
               </Button>
               <Input
@@ -3067,7 +3074,7 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
             </div>
             <div className="w-11/12 flex items-center gap-5  justify-self-center">
               <Button className="rounded-full cursor-default w-2/6 text-sm font-bold bg-blue-700">
-                {fourthQuarterGoal} { " "}{uniteData.find((unit) => unit.id === forthQuarterUnitId)?.symbol || ""}
+                {fourthQuarterGoal} {" "}{uniteData.find((unit) => unit.id === forthQuarterUnitId)?.symbol || ""}
               </Button>{" "}
               <Input
                 type="text"

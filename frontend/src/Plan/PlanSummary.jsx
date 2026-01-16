@@ -46,10 +46,10 @@ function Summary() {
   const [commentModal, setCommentModal] = useState(false);
   const [docid, setDocid] = useState(null)
   const currentYear = new Date().getFullYear();
-  const currentYearGC = new Date().getFullYear(); 
-const currentMonthGC = new Date().getMonth() + 1; 
-const ethiopianYear = currentYearGC - 7 - (currentMonthGC < 9 ? 1 : 0);
-const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 2013 + index);
+  const currentYearGC = new Date().getFullYear();
+  const currentMonthGC = new Date().getMonth() + 1;
+  const ethiopianYear = currentYearGC - 7 - (currentMonthGC < 9 ? 1 : 0);
+  const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 2013 + index);
   const [selectedYear, setSelectedYear] = useState(ethiopianYear);
   const [selectedQuarter, setSelectedQuarter] = useState(null);
   const [selectedSector, setSelectedSector] = useState(null);
@@ -1156,22 +1156,13 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
       console.error('Error generating document:', error);
     }
   };
-const quarterLabels = {
-  12: "Annual",
-  1: "First Quarter",
-  2: "Second Quarter",
-  3: "Third Quarter",
-  4: "Fourth Quarter",
-  6: "Six Month",
-  9: "Nine Month",
-};
 
   return (
     <>
       <p className="text-base font-bold font-sans">{t("MAIN.SIDEBAR.PLAN.PLAN_SUMMARY.PLAN_SUMMARY")}</p>
 
       <Card className="w-full rounded-md shadow-md">
-   
+
         <CardBody className="grid gap-2 md:gap-4 lg:gap-6 md:grid-cols-2 xl:grid-cols-4 items-center">
           <div className="grid gap-1">
             <h1 className="whitespace-nowrap text-left text-xs md:text-sm font-semibold text-black">
@@ -1205,7 +1196,7 @@ const quarterLabels = {
               className="text-xs md:text-sm"
             >
               {[
-                { value: "12", label: t("MAIN.TABLE.ANNUAL") },
+                { value: "12", label: t("MAIN.TABLE.YEAR") },
                 { value: "1", label: t("MAIN.TABLE.FIRST_QUARTER") },
                 { value: "2", label: t("MAIN.TABLE.SECOND_QUARTER") },
                 { value: "3", label: t("MAIN.TABLE.THIRD_QUARTER") },
@@ -1390,11 +1381,10 @@ const quarterLabels = {
                           </Typography>
                         </td>
                         <td className={classes}>
-  <Typography variant="small" color="blue-gray" className="font-normal">
-    {quarterLabels[quarter] || quarter}
-  </Typography>
-</td>
-
+                          <Typography variant="small" color="blue-gray" className="font-normal">
+                            {quarter}
+                          </Typography>
+                        </td>
                         {authInfo.user.sector_id && (
                           <td className={classes}>
                             <label className="flex justify-center items-center cursor-pointer">
@@ -1404,8 +1394,8 @@ const quarterLabels = {
                                 onChange={() => UpdateApproval(id)}
                                 className="sr-only peer"
                               />
-                              <div className={`relative w-9 h-5 rounded-full peer bg-white border border-gray-200 peer-checked:after:translate-x-full after:absolute  ${status ? 'after:top-[-1px] after:start-[-5px] after:bg-green-900 after:border after:rounded-full after:h-5 after:w-5 after:transition-all' : 'after:top-[-1px] after:start-[-5px] after:bg-red-900 after:border after:rounded-full after:h-5 after:w-5 after:transition-all'}`}/>
- 
+                              <div className={`relative w-9 h-5 rounded-full peer bg-white border border-gray-200 peer-checked:after:translate-x-full after:absolute  ${status ? 'after:top-[-1px] after:start-[-5px] after:bg-green-900 after:border after:rounded-full after:h-5 after:w-5 after:transition-all' : 'after:top-[-1px] after:start-[-5px] after:bg-red-900 after:border after:rounded-full after:h-5 after:w-5 after:transition-all'}`} />
+
                             </label>
                           </td>
                         )}
@@ -1417,8 +1407,8 @@ const quarterLabels = {
                               onChange={() => Submit(id)}
                               className="sr-only peer"
                             />
-                              <div className={`relative w-9 h-5 rounded-full peer bg-white border border-gray-200 peer-checked:after:translate-x-full after:absolute  ${submitted ? 'after:top-[-1px] after:start-[-5px] after:bg-green-900 after:border after:rounded-full after:h-5 after:w-5 after:transition-all' : 'after:top-[-1px] after:start-[-5px] after:bg-red-900 after:border after:rounded-full after:h-5 after:w-5 after:transition-all'}`}/>
-                              </label>
+                            <div className={`relative w-9 h-5 rounded-full peer bg-white border border-gray-200 peer-checked:after:translate-x-full after:absolute  ${submitted ? 'after:top-[-1px] after:start-[-5px] after:bg-green-900 after:border after:rounded-full after:h-5 after:w-5 after:transition-all' : 'after:top-[-1px] after:start-[-5px] after:bg-red-900 after:border after:rounded-full after:h-5 after:w-5 after:transition-all'}`} />
+                          </label>
                         </td>
                         <td className={classes}>
                           <div className="flex items-center justify-center gap-2">
@@ -1500,16 +1490,16 @@ const quarterLabels = {
         <DialogHeader className="flex justify-between">
           <div className="text-xl ml-5">{t("MAIN.SIDEBAR.PLAN.PLAN_SUMMARY.ADD_SUMMARY")}</div>
           <div
-                      className="cursor-pointer mr-5"
-                      onClick={handleCloseModalSummary}
-                    >
-                      <FontAwesomeIcon
-                        className="cursor-pointer"
-                        icon={freeSolidSvgIcons.faXmark}
-                        color="blue"
-                        onClick={handleCloseModalSummary}
-                      />
-                    </div>
+            className="cursor-pointer mr-5"
+            onClick={handleCloseModalSummary}
+          >
+            <FontAwesomeIcon
+              className="cursor-pointer"
+              icon={freeSolidSvgIcons.faXmark}
+              color="blue"
+              onClick={handleCloseModalSummary}
+            />
+          </div>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="h-full w-full">
           <ol className="flex items-center ml-3 lg:ml-16 text-xs text-gray-900 font-medium sm:text-sm overflow-auto">
@@ -1596,15 +1586,15 @@ const quarterLabels = {
         </DialogHeader>
         <DialogBody>
           {(authInfo.user.monitoring_id || authInfo.user.is_superadmin) && (
-          <Button
-          variant="text"
-          size="sm"
-          className="flex items-center gap-1 hover:bg-blue-700 bg-blue-700  text-white  normal-case whitespace-nowrap text-left text-sm font-bold"
-          onClick={handleDownload}
-        >
-          <FontAwesomeIcon icon={faDownload} />
-          Download Word Document
-        </Button>
+            <Button
+              variant="text"
+              size="sm"
+              className="flex items-center gap-1 hover:bg-blue-700 bg-blue-700  text-white  normal-case whitespace-nowrap text-left text-sm font-bold"
+              onClick={handleDownload}
+            >
+              <FontAwesomeIcon icon={faDownload} />
+              Download Word Document
+            </Button>
           )}
         </DialogBody>
         <DialogFooter>
@@ -1624,13 +1614,47 @@ const quarterLabels = {
         </div>
       )}
       {pdfloading && (
-        <div className="w-1/2 shadow-2xl bg-white absolute top-36 left-[35%] p-5 rounded-lg h-[400px]">
-          <div className="cursor-pointer mr-5 font-bold text-2xl" onClick={() => {setLoading(false);handleClosePdfModal();}}>X</div>
-          <div className="text-center">
-            <label className="font-semibold">Please wait a moment...</label>
-            <img src={Loadingif} className="mx-auto mt-20" width={"20%"} />
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-[9999] transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 transform transition-all">
+            {/* Close Button */}
+            <button
+              onClick={() => { setLoading(false); handleClosePdfModal(); }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Content */}
+            <div className="flex flex-col items-center text-center space-y-6">
+              {/* Modern Spinner */}
+              <div className="relative w-20 h-20">
+                {/* Outer ring */}
+                <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
+                {/* Spinning ring */}
+                <div className="absolute inset-0 border-4 border-transparent border-t-blue-600 rounded-full animate-spin"></div>
+                {/* Inner dot */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+
+              {/* Text */}
+              <div className="space-y-2">
+                <h3 className="text-xl font-semibold text-gray-800">Generating Document</h3>
+                <p className="text-sm text-gray-500">Please wait while we prepare your PDF...</p>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full">
+                <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full animate-[shimmer_1.5s_ease-in-out_infinite]"></div>
+                </div>
+              </div>
+            </div>
           </div>
-          <ReactLoading type={"bubbles"} className="mx-auto mb-0" color={"#1976d2"} height={'10%'} width={'20%'} />
         </div>
       )}
       <Dialog open={commentModal} size="xl" className="h-[700px]" handler={handleCloseCommentModal}>
