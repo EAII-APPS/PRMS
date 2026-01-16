@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict jEhN7OHo18EaaydaPob8t7cUEZxG0eUzm3A04O4C30pUZeTgiRhOgMds055xcMW
+\restrict hEmwKjfQQvNKyR2q6JhDNfdhRI9T4P2rLOW5DFemYgfxYoEhMFypqyp9Nm5Fjec
 
 -- Dumped from database version 15.15 (Debian 15.15-1.pgdg13+1)
 -- Dumped by pg_dump version 15.15 (Debian 15.15-1.pgdg13+1)
 
--- Started on 2026-01-16 12:23:33 UTC
+-- Started on 2026-01-16 12:52:13 UTC
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -3723,6 +3723,8 @@ zzvues2tu5jlsy89ui5jyobrgis0qq7m	.eJxVjDsOwjAQRO_iGln-21DSc4Zo17vGAWRL-VSIu5NIKU
 94zoub44id2q7zht3g9w526ok10h0m5j	.eJxVjEEOwiAQRe_C2hDaMhRcuvcMZKbDSNVAUtqV8e7apAvd_vfef6mI25rj1tISZ1ZnNajT70Y4PVLZAd-x3KqealmXmfSu6IM2fa2cnpfD_TvI2PK3hkG8RXJ9MM6NxllCYZGOwJoeGJITDzAm6dgGMYJs-4ECQZiCsPfq_QHf6zgh:1vgiYT:uxox35PdJwoGh-WHSNxZNfh5dn5rxLV65YJ7joaZ_lI	2026-01-30 12:03:53.703711+00
 3guwrte5o1py032vux84aylul70w1phw	.eJxVjEEOwiAQRe_C2hCEGaAu3fcMZGCoVA0kpV0Z765NutDtf-_9lwi0rSVsPS9hZnERZ3H63SKlR6474DvVW5Op1XWZo9wVedAux8b5eT3cv4NCvXxrAOXR5MSorMJhcpajg2jIG0Ri0Kw9TNZYP2gg5IjI5Iy3hklB9uL9AcFtNx4:1vgiXn:Wd7nnO3MfOrHe1uBtPyON5W5HPicWC6Bu_iqrsl3Sj0	2026-01-30 12:03:11.936487+00
 20m8hdf4piw26zx3edmpurc9dud5zcmc	.eJxVjEEOwiAQRe_C2hCEGaAu3fcMZGCoVA0kpV0Z765NutDtf-_9lwi0rSVsPS9hZnERZ3H63SKlR6474DvVW5Op1XWZo9wVedAux8b5eT3cv4NCvXxrAOXR5MSorMJhcpajg2jIG0Ri0Kw9TNZYP2gg5IjI5Iy3hklB9uL9AcFtNx4:1vgic9:MdRkxj1k97nA_kdzyV1wD6LO1Tv2XxBtCzYqsGRvUBc	2026-01-30 12:07:41.497378+00
+kq4w5gilpk92tuh8vpcpb8bili0zk6wp	.eJxVjEEOwiAQRe_C2hCEGaAu3fcMZGCoVA0kpV0Z765NutDtf-_9lwi0rSVsPS9hZnERZ3H63SKlR6474DvVW5Op1XWZo9wVedAux8b5eT3cv4NCvXxrAOXR5MSorMJhcpajg2jIG0Ri0Kw9TNZYP2gg5IjI5Iy3hklB9uL9AcFtNx4:1vgiub:IjCR-dIoSBXpiUMIWdm8j2KnRkv-Fyve3MM6c6TM9tU	2026-01-30 12:26:45.545278+00
+z1u919zndi58xuya718sl48bwda893ru	.eJxVjEEOwiAQRe_C2hDaMhRcuvcMZKbDSNVAUtqV8e7apAvd_vfef6mI25rj1tISZ1ZnNajT70Y4PVLZAd-x3KqealmXmfSu6IM2fa2cnpfD_TvI2PK3hkG8RXJ9MM6NxllCYZGOwJoeGJITDzAm6dgGMYJs-4ECQZiCsPfq_QHf6zgh:1vgj5A:_lzr3zxHg3JDhhGUaEKYoXm_HRMzxBteuCBgaX2j7Ek	2026-01-30 12:37:40.418494+00
 \.
 
 
@@ -5954,8 +5956,8 @@ COPY public."userApp_user" (id, password, last_login, is_superuser, username, fi
 26	pbkdf2_sha256$720000$bKOJESDOlxbcrYd4jYCZsm$g4ZIagrCQmfwQRbsHaCsMo4zqWDq8hMqIEC4puZTHHM=	2025-08-27 08:10:42.947+00	f	ajema@gmail.com	Ajema	Leta	ajema@gmail.com	f	t	2025-03-21 08:25:23.304+00	f	t	f	2025-03-21 08:25:23.304+00	f	male	912345696		t	2025-03-21	\N	\N	\N	19	\N	9	\N
 27	pbkdf2_sha256$720000$i9Xx1eHdSEihGGf4VfCO5T$7iid0sw30bv6zfMxosyWu77nRsgCiiCSF9V2+8ocy4k=	\N	f	testata@gmail.com	test	user	testata@gmail.com	f	t	2025-05-12 11:06:35.011+00	f	t	f	2025-05-12 11:06:35.99+00	f	Male	911111111		t	2025-05-12	1	\N	\N	\N	1	2	\N
 14	pbkdf2_sha256$720000$bKOJESDOlxbcrYd4jYCZsm$g4ZIagrCQmfwQRbsHaCsMo4zqWDq8hMqIEC4puZTHHM=	2025-08-27 07:58:40.118+00	f	sisay@gmail.com	sisay	Nagi	sisay@gmail.com	f	t	2025-03-21 08:25:23+00	f	t	f	2025-03-21 08:25:23.099+00	f	Male	912345680		t	2025-03-21	\N	\N	14	3	\N	7	\N
-3	pbkdf2_sha256$720000$yr4mO8rcXVrPakZ39QxdYO$Bv+1wSbBSjiTnJpF9YY7LYlwasCFW8wDbkUssn9R7FA=	2026-01-16 12:03:53.322903+00	f	tigist@gmail.com	Tigist	Zeleke	tigist@gmail.com	f	t	2025-03-18 12:32:29+00	f	f	f	2025-03-18 12:32:29.005+00	f	female	0912333667		t	2025-03-18	\N	\N	1	\N	1	2	\N
-1	pbkdf2_sha256$720000$OCg7bo8GsiVGTWW0pEFRFa$BCh9tes/sZ3rM7jYVx7TFQcJKHqQhP2RWzqf4WvK0u4=	2026-01-16 12:07:41.100298+00	t	superadmin@gmail.com	Super	Admin	superadmin@gmail.com	t	t	2025-03-18 12:32:08.74+00	t	t	f	2025-03-18 12:32:08.74+00	f	male	0912345667		t	2025-03-18	\N	\N	\N	\N	\N	1	\N
+1	pbkdf2_sha256$720000$OCg7bo8GsiVGTWW0pEFRFa$BCh9tes/sZ3rM7jYVx7TFQcJKHqQhP2RWzqf4WvK0u4=	2026-01-16 12:26:45.165561+00	t	superadmin@gmail.com	Super	Admin	superadmin@gmail.com	t	t	2025-03-18 12:32:08.74+00	t	t	f	2025-03-18 12:32:08.74+00	f	male	0912345667		t	2025-03-18	\N	\N	\N	\N	\N	1	\N
+3	pbkdf2_sha256$720000$yr4mO8rcXVrPakZ39QxdYO$Bv+1wSbBSjiTnJpF9YY7LYlwasCFW8wDbkUssn9R7FA=	2026-01-16 12:37:40.03881+00	f	tigist@gmail.com	Tigist	Zeleke	tigist@gmail.com	f	t	2025-03-18 12:32:29+00	f	f	f	2025-03-18 12:32:29.005+00	f	female	0912333667		t	2025-03-18	\N	\N	1	\N	1	2	\N
 \.
 
 
@@ -10404,11 +10406,11 @@ ALTER TABLE ONLY public."userApp_userrole"
     ADD CONSTRAINT "userApp_userrole_user_id_id_41a62ddf_fk_userApp_user_id" FOREIGN KEY (user_id_id) REFERENCES public."userApp_user"(id) DEFERRABLE INITIALLY DEFERRED;
 
 
--- Completed on 2026-01-16 12:23:33 UTC
+-- Completed on 2026-01-16 12:52:13 UTC
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict jEhN7OHo18EaaydaPob8t7cUEZxG0eUzm3A04O4C30pUZeTgiRhOgMds055xcMW
+\unrestrict hEmwKjfQQvNKyR2q6JhDNfdhRI9T4P2rLOW5DFemYgfxYoEhMFypqyp9Nm5Fjec
 
