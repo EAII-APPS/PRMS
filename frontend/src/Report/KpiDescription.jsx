@@ -579,7 +579,7 @@ const [editName,setEditName] = useState("");
 
                     return (
                       <Option key={items.id} value={items.id} className="text-black h-fit">
-                        {items.kpi_name} ({measureName})
+                        {items.kpi_name} ({measureName}) - ({items.year})
                       </Option>
                     );
                   })}

@@ -30,6 +30,7 @@ def dashboard_data(request):
         # Base query filters
         if request.user.monitoring_id or request.user.is_superadmin:
             annual_kpi_queryset = AnnualKPI.objects.filter(year=filter_year)
+            kpi_queryset = KPI.objects.all()
             main_goal_queryset = MainGoal.objects.all()
             strategic_goal_queryset = StrategicGoal.objects.all()
             user_queryset = User.objects.all()
@@ -40,6 +41,7 @@ def dashboard_data(request):
                     division_ids=[0]
                 else:
                     annual_kpi_queryset = annual_kpi_queryset.filter(year=filter_year,division_id__in=division_ids).distinct()
+                    kpi_queryset = kpi_queryset.filter(division_id__in=division_ids).distinct()
                 main_goal_queryset = main_goal_queryset.filter(sector_id=filter_sector)
                 strategic_goal_queryset = strategic_goal_queryset.filter(sector_id=filter_sector)
                 user_queryset = user_queryset.filter(division_id__in=division_ids).distinct()
@@ -48,12 +50,14 @@ def dashboard_data(request):
                 sector_of_division = Division.objects.get(id=filter_division).sector_id
                 division_ids = Division.objects.filter(sector_id=sector_of_division, is_deleted=False).values_list('id', flat=True)
                 annual_kpi_queryset = annual_kpi_queryset.filter(year=filter_year,division_id=filter_division)
+                kpi_queryset = kpi_queryset.filter(division_id=filter_division).distinct()
                 main_goal_queryset = main_goal_queryset.filter(sector_id=sector_of_division)
                 strategic_goal_queryset = strategic_goal_queryset.filter(sector_id=sector_of_division)
                 user_queryset = user_queryset.filter(division_id__in=division_ids).distinct()
         if request.user.sector_id:
             division_ids = Division.objects.filter(sector_id=request.user.sector_id.id, is_deleted=False).values_list('id', flat=True)
             annual_kpi_queryset = AnnualKPI.objects.filter(year=filter_year,division_id__in=division_ids)
+            kpi_queryset = KPI.objects.filter(division_id__in=division_ids).distinct()
             main_goal_queryset = MainGoal.objects.filter(sector_id=request.user.sector_id.id)
             strategic_goal_queryset = StrategicGoal.objects.filter(sector_id=request.user.sector_id.id)
             user_queryset = User.objects.filter(sector_id=request.user.sector_id)
@@ -64,6 +68,7 @@ def dashboard_data(request):
                     division_ids=[0]
                 else:
                     annual_kpi_queryset = annual_kpi_queryset.filter(year=filter_year,division_id__in=division_ids).distinct()
+                    kpi_queryset = kpi_queryset.filter(division_id__in=division_ids).distinct()
                 main_goal_queryset = main_goal_queryset.filter(sector_id=filter_sector)
                 strategic_goal_queryset = strategic_goal_queryset.filter(sector_id=filter_sector)
                 user_queryset = user_queryset.filter(division_id__in=division_ids).distinct()
@@ -72,12 +77,14 @@ def dashboard_data(request):
                 sector_of_division = Division.objects.get(id=filter_division).sector_id
                 division_ids = Division.objects.filter(sector_id=sector_of_division, is_deleted=False).values_list('id', flat=True)
                 annual_kpi_queryset = annual_kpi_queryset.filter(division_id=filter_division)
+                kpi_queryset = kpi_queryset.filter(division_id=filter_division).distinct()
                 main_goal_queryset = main_goal_queryset.filter(sector_id=sector_of_division)
                 strategic_goal_queryset = strategic_goal_queryset.filter(sector_id=sector_of_division)
                 user_queryset = user_queryset.filter(division_id__in=division_ids).distinct()
         if request.user.division_id:
             sector_of_division = Division.objects.get(id=request.user.division_id.id).sector_id
             annual_kpi_queryset = AnnualKPI.objects.filter(year=filter_year,division_id=request.user.division_id.id)
+            kpi_queryset = KPI.objects.filter(division_id=request.user.division_id.id).distinct()
             main_goal_queryset = MainGoal.objects.filter(sector_id=sector_of_division)
             strategic_goal_queryset = StrategicGoal.objects.filter(sector_id=sector_of_division)
             user_queryset = User.objects.filter(sector_id=sector_of_division)
@@ -88,6 +95,7 @@ def dashboard_data(request):
                     division_ids=[0]
                 else:
                     annual_kpi_queryset = annual_kpi_queryset.filter(year=filter_year,division_id__in=division_ids).distinct()
+                    kpi_queryset = kpi_queryset.filter(division_id__in=division_ids).distinct()
                 main_goal_queryset = main_goal_queryset.filter(sector_id=filter_sector)
                 strategic_goal_queryset = strategic_goal_queryset.filter(sector_id=filter_sector)
                 user_queryset = user_queryset.filter(division_id__in=division_ids).distinct()
@@ -96,6 +104,7 @@ def dashboard_data(request):
                 sector_of_division = Division.objects.get(id=filter_division).sector_id
                 division_ids = Division.objects.filter(sector_id=sector_of_division, is_deleted=False).values_list('id', flat=True)
                 annual_kpi_queryset = annual_kpi_queryset.filter(year=filter_year,division_id=filter_division)
+                kpi_queryset = kpi_queryset.filter(division_id=filter_division).distinct()
                 main_goal_queryset = main_goal_queryset.filter(sector_id=sector_of_division)
                 strategic_goal_queryset = strategic_goal_queryset.filter(sector_id=sector_of_division)
                 user_queryset = user_queryset.filter(division_id__in=division_ids).distinct()
@@ -104,7 +113,7 @@ def dashboard_data(request):
         current_counts = {
             "strategic_goals": strategic_goal_queryset.count(),
             "main_goals": main_goal_queryset.count(),
-            "kpis": annual_kpi_queryset.count(),
+            "kpis": kpi_queryset.count(),
             "users": user_queryset.count(),  # Users are not filtered by sector or division
         }
 

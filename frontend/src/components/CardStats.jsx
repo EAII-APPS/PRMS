@@ -22,7 +22,7 @@ const CardStats = ({ statsData }) => {
     switch (stat.icon) {
       case "TrendingUpIcon": return "/Home/StrategicGoal";
       case "AssignmentIcon": return "/Home/MainGoal";
-      case "BarChartIcon": return "/Home/Kpi";
+      case "BarChartIcon": return "/Home/kpiall";
       case "PeopleIcon": return "/Home/Admin";
       default: return null;
     }
