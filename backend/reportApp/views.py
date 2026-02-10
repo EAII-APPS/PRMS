@@ -1412,7 +1412,6 @@ def get_filter_display_name(user, sector_param, division_param, quarter, year):
     
     return org_name, org_type, quarter_name
 
-
 def build_filters(request):
     """Build comprehensive filters based on user role and query parameters"""
     user = request.user
@@ -1430,7 +1429,8 @@ def build_filters(request):
         return None, f"Invalid quarter. Choose from: {', '.join(valid_quarters)}"
     quarter = quarter.lower() if quarter else None
     
-
+    from django.db.models import Q
+    
     annual_kpi_filter = Q(year=year)
     summary_filter = Q(year=year)
     
@@ -1440,17 +1440,30 @@ def build_filters(request):
     if sector_param:
         sector_ids = [int(s) for s in sector_param.split(',')]
         summary_filter &= Q(sector_id__in=sector_ids)
-        annual_kpi_filter &= Q(kpi__main_goal_id__sector_id__in=sector_ids)
+        annual_kpi_filter &= (
+            Q(kpi__main_goal_id__sector_id__in=sector_ids) | 
+            Q(division_id__sector_id__in=sector_ids)
+        )
+        
     elif division_param:
         division_ids = [int(d) for d in division_param.split(',')]
         summary_filter &= Q(division_id__in=division_ids)
         annual_kpi_filter &= Q(division_id__in=division_ids)
+        
     elif getattr(user, 'division_id', None):
         summary_filter &= Q(division_id=user.division_id.id)
         annual_kpi_filter &= Q(division_id=user.division_id.id)
+        
     elif getattr(user, 'sector_id', None):
-        summary_filter &= Q(sector_id=user.sector_id.id)
-        annual_kpi_filter &= Q(kpi__main_goal_id__sector_id=user.sector_id.id)
+        from userApp.models import Division
+        sector_divisions = Division.objects.filter(sector_id=user.sector_id).values_list('id', flat=True)
+        summary_filter &= (
+            Q(sector_id=user.sector_id.id) | 
+            Q(division_id__in=sector_divisions)
+        )
+
+        annual_kpi_filter &= Q(division_id__in=sector_divisions)
+        
     elif not (getattr(user, 'is_superadmin', False) or getattr(user, 'monitoring_id', None)):
         return None, "You do not have permission to view this data."
     
@@ -1462,6 +1475,8 @@ def build_filters(request):
         'sector_param': sector_param,
         'division_param': division_param
     }, None
+    
+    
     
 class GenerateReportDocument(APIView):
     permission_classes = [IsAuthenticated]
