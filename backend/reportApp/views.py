@@ -1463,7 +1463,6 @@ def build_filters(request):
         'division_param': division_param
     }, None
     
-
 class GenerateReportDocument(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -1501,12 +1500,9 @@ class GenerateReportDocument(APIView):
                 Q(sector_id=sector_id) | 
                 Q(division_id__in=sector_divisions)
             )
-        
-
         elif division_id:
             from django.db.models import Q
             summary_filter = summary_filter & Q(division_id=division_id)
-        
         if sector_id and not division_id:
             from userApp.models import Division
             from django.db.models import Q
@@ -1638,7 +1634,9 @@ class GenerateReportDocument(APIView):
                     doc.add_page_break()
             
             elif section_key == 'institutional':
-                institutional_summaries = summaries_queryset.filter(type='ተቋማዊ የማስፈጸም አቅም፣ የሀብት አጠቃቀም እና የአገልግሎት አሰጣጥ አሰራር ማጎልበት ስራዎችን በተመለከተ')
+                institutional_summaries = summaries_queryset.filter(
+                    type='ተቋማዊ የማስፈጸም አቅም፣ የሀብት አጠቃቀም እና የአገልግሎት አሰጣጥ አሰራር ማጎልበት ስራዎችን በተመለከተ'
+                )
                 if institutional_summaries.exists():
                     inst_heading = doc.add_paragraph("ተቋማዊ የማስፈጸም አቅም፣ የሀብት አጠቃቀም እና የአገልግሎት አሰጣጥ አሰራር ማጎልበት ስራዎችን በተመለከተ")
                     set_paragraph_style(inst_heading, font_size=Pt(14), bold=True)
@@ -1685,29 +1683,28 @@ class GenerateReportDocument(APIView):
                 if strategic_goals_dict:
                     strategic_heading = doc.add_paragraph("ስትራተጂክ ግብ እና ተዛማጅ የስራ አፈፃፀም")
                     set_paragraph_style(strategic_heading, font_size=Pt(14), bold=True)
+                    
                     strategic_counter = 0
                     for strategic_goal, main_goals_dict in strategic_goals_dict.items():
                         strategic_counter += 1
+                        
                         strategic_goal_para = doc.add_paragraph(f"{strategic_counter}. {strategic_goal.name}")
                         set_paragraph_style(strategic_goal_para, font_size=Pt(13), bold=True)
-            
+                        
                         main_goal_counter = 0
                         for main_goal, kpis_dict in main_goals_dict.items():
                             main_goal_counter += 1
                             
-        
                             main_goal_para = doc.add_paragraph(f"   {strategic_counter}.{main_goal_counter}. {main_goal.name}")
                             set_paragraph_style(main_goal_para, font_size=Pt(12), bold=True)
                             
-    
                             kpi_counter = 0
                             for kpi, kpi_descriptions in kpis_dict.items():
                                 kpi_counter += 1
                                 
-     
                                 kpi_para = doc.add_paragraph(f"      {strategic_counter}.{main_goal_counter}.{kpi_counter}. {kpi.name}")
                                 set_paragraph_style(kpi_para, font_size=Pt(11), bold=False)
-
+                                
                                 for kpi_desc in kpi_descriptions:
                                     for desc in kpi_desc.description.all():
                                         if desc.description:
@@ -1735,7 +1732,9 @@ class GenerateReportDocument(APIView):
                     doc.add_page_break()
             
             elif section_key == 'challenges':
-                challenges_summaries = summaries_queryset.filter(type='በአፈፃፀም ሂደት ያጋጣሙ ተግዳሮቶችና የተወሰዱ የመፍትሔ እርምጃዎች')
+                challenges_summaries = summaries_queryset.filter(
+                    type='በአፈፃፀም ሂደት ያጋጣሙ ተግዳሮቶችና የተወሰዱ የመፍትሔ እርምጃዎች'
+                )
                 if challenges_summaries.exists():
                     challenges_heading = doc.add_paragraph("በአፈፃፀም ሂደት ያጋጣሙ ተግዳሮቶችና የተወሰዱ የመፍትሔ እርምጃዎች")
                     set_paragraph_style(challenges_heading, font_size=Pt(14), bold=True)
@@ -1855,8 +1854,6 @@ class GenerateReportDocument(APIView):
             import traceback
             traceback.print_exc()
             return JsonResponse({"error": str(e)}, status=500)
-
-
 
 def generate_kpi_performance_table(doc, request, filters=None):
     """Generate KPI performance table with correct indexing and strategic goal ordering"""
