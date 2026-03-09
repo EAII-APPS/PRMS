@@ -1413,60 +1413,88 @@ def get_filter_display_name(user, sector_param, division_param, quarter, year):
     return org_name, org_type, quarter_name
 
 def build_filters(request):
-    """Build comprehensive filters based on user role and query parameters"""
+    """
+    Build filters with priority:
+      1. Query parameters (sector, division) – for monitoring/superadmin.
+      2. User's own sector/division (if not monitoring/superadmin).
+    """
     user = request.user
-    year_str = request.query_params.get("year") if hasattr(request, 'query_params') else request.GET.get("year")
-    quarter = request.query_params.get("quarter") if hasattr(request, 'query_params') else request.GET.get("quarter")
-    sector_param = request.query_params.get("sector") if hasattr(request, 'query_params') else request.GET.get("sector")
-    division_param = request.query_params.get("division") if hasattr(request, 'query_params') else request.GET.get("division")
-    
+    year_str = request.query_params.get("year") or request.GET.get("year")
+    quarter = request.query_params.get("quarter") or request.GET.get("quarter")
+    sector_param = request.query_params.get("sector") or request.GET.get("sector")
+    division_param = request.query_params.get("division") or request.GET.get("division")
+
     if not year_str or not year_str.isdigit():
         return None, "Valid Year parameter is required"
     year = int(year_str)
-    
+
     valid_quarters = ["first", "second", "third", "fourth", "six", "nine", "year"]
     if quarter and quarter.lower() not in valid_quarters:
         return None, f"Invalid quarter. Choose from: {', '.join(valid_quarters)}"
     quarter = quarter.lower() if quarter else None
-    
+
     from django.db.models import Q
-    
+    from userApp.models import Division   # needed for division lookup
+
     annual_kpi_filter = Q(year=year)
     summary_filter = Q(year=year)
-    
+
     if quarter and quarter != 'year':
         summary_filter &= Q(quarter__iexact=quarter)
-    
+
+    is_monitoring_or_superadmin = getattr(user, 'is_superadmin', False) or getattr(user, 'monitoring_id', None)
+
     if sector_param:
         sector_ids = [int(s) for s in sector_param.split(',')]
-        summary_filter &= Q(sector_id__in=sector_ids)
-        annual_kpi_filter &= (
-            Q(kpi__main_goal_id__sector_id__in=sector_ids) | 
-            Q(division_id__sector_id__in=sector_ids)
+        divisions_in_sectors = Division.objects.filter(sector_id__in=sector_ids).values_list('id', flat=True)
+
+        summary_filter &= (
+            Q(sector_id__in=sector_ids) |
+            Q(division_id__in=divisions_in_sectors)
         )
-        
-    elif division_param:
+
+        annual_kpi_filter &= Q(division_id__in=divisions_in_sectors)
+
+        return {
+            'annual_kpi_filter': annual_kpi_filter,
+            'summary_filter': summary_filter,
+            'year': year,
+            'quarter': quarter,
+            'sector_param': sector_param,
+            'division_param': division_param
+        }, None
+
+    if division_param:
         division_ids = [int(d) for d in division_param.split(',')]
         summary_filter &= Q(division_id__in=division_ids)
         annual_kpi_filter &= Q(division_id__in=division_ids)
-        
+        return {
+            'annual_kpi_filter': annual_kpi_filter,
+            'summary_filter': summary_filter,
+            'year': year,
+            'quarter': quarter,
+            'sector_param': sector_param,
+            'division_param': division_param
+        }, None
+
+    if is_monitoring_or_superadmin:
+        pass
+
     elif getattr(user, 'division_id', None):
         summary_filter &= Q(division_id=user.division_id.id)
         annual_kpi_filter &= Q(division_id=user.division_id.id)
-        
+
     elif getattr(user, 'sector_id', None):
-        from userApp.models import Division
         sector_divisions = Division.objects.filter(sector_id=user.sector_id).values_list('id', flat=True)
         summary_filter &= (
-            Q(sector_id=user.sector_id.id) | 
+            Q(sector_id=user.sector_id.id) |
             Q(division_id__in=sector_divisions)
         )
-
         annual_kpi_filter &= Q(division_id__in=sector_divisions)
-        
-    elif not (getattr(user, 'is_superadmin', False) or getattr(user, 'monitoring_id', None)):
+
+    else:
         return None, "You do not have permission to view this data."
-    
+
     return {
         'annual_kpi_filter': annual_kpi_filter,
         'summary_filter': summary_filter,
@@ -1474,8 +1502,7 @@ def build_filters(request):
         'quarter': quarter,
         'sector_param': sector_param,
         'division_param': division_param
-    }, None
-    
+    }, None 
     
     
 class GenerateReportDocument(APIView):
@@ -1483,17 +1510,17 @@ class GenerateReportDocument(APIView):
 
     def get(self, request):
         delete_old_documents()
-        
+
         filters, error = build_filters(request)
         if error:
             return JsonResponse({"error": error}, status=400)
-        
+
         user = request.user
         year = filters['year']
         quarter = filters['quarter']
         annual_kpi_filter = filters['annual_kpi_filter']
         summary_filter = filters['summary_filter']
-        
+
         org_name, org_type, quarter_name = get_filter_display_name(
             user,
             filters['sector_param'],
@@ -1501,35 +1528,8 @@ class GenerateReportDocument(APIView):
             quarter,
             year
         )
-        
-        division_id = getattr(user, 'division_id', None)
-        sector_id = getattr(request.user, 'sector_id', None)
-        monitoring_id = getattr(request.user, 'monitoring_id', None)
-        is_superadmin = getattr(request.user, 'is_superadmin', False)
-        
-        if sector_id and not division_id:
-            from userApp.models import Division
-            from django.db.models import Q
-            sector_divisions = Division.objects.filter(sector_id=sector_id).values_list('id', flat=True)
-            summary_filter = summary_filter & (
-                Q(sector_id=sector_id) | 
-                Q(division_id__in=sector_divisions)
-            )
-        elif division_id:
-            from django.db.models import Q
-            summary_filter = summary_filter & Q(division_id=division_id)
-        if sector_id and not division_id:
-            from userApp.models import Division
-            from django.db.models import Q
-            sector_divisions = Division.objects.filter(sector_id=sector_id).values_list('id', flat=True)
-            annual_kpi_filter = annual_kpi_filter & (
-                Q(kpi__main_goal_id__sector_id=sector_id) | 
-                Q(division_id__in=sector_divisions)
-            )
-        elif division_id:
-            from django.db.models import Q
-            annual_kpi_filter = annual_kpi_filter & Q(division_id=division_id)
 
+        #  Annual KPI queryset
         annual_kpis_queryset = (
             AnnualKPI.objects.filter(annual_kpi_filter)
             .select_related(
@@ -1560,7 +1560,8 @@ class GenerateReportDocument(APIView):
                 "kpi__name",
             )
         )
-        
+
+        # Summary queryset 
         summaries_queryset = (
             Summary.objects.filter(summary_filter)
             .prefetch_related(
@@ -1572,37 +1573,39 @@ class GenerateReportDocument(APIView):
             )
             .order_by("id")
         )
-        
+
         if not annual_kpis_queryset.exists() and not summaries_queryset.exists():
             return JsonResponse(
-                {"error": f"No data found for Year {year}" + (f" and Quarter {quarter}" if quarter else "")}, 
+                {"error": f"No data found for Year {year}" + (f" and Quarter {quarter}" if quarter else "")},
                 status=404
             )
-      
+
         doc = Document()
-        
+
+        # Logo
         try:
             system_setting = SystemSetting.objects.first()
             logo_path = system_setting.logo_image.path if system_setting and system_setting.logo_image else None
         except Exception as e:
             print(f"Could not load system settings: {e}")
             logo_path = None
-        
+
         section = doc.sections[0]
         section.top_margin = Inches(1)
         section.bottom_margin = Inches(1)
-        
+
         if logo_path and os.path.exists(logo_path):
             img_p = doc.add_paragraph()
             add_picture_to_run(img_p.add_run(), logo_path, width=Inches(2))
             img_p.alignment = 1
-        
-        title_text = f"{org_name} {org_type} የ {year} በጀት ዓመት {quarter_name}  አፈፃፀም ሪፖርት"
+
+        # Title
+        title_text = f"{org_name}  የ {year} በጀት ዓመት {quarter_name}  አፈፃፀም ሪፖርት"
         title_p = doc.add_paragraph(title_text)
         set_paragraph_style(title_p, font_size=Pt(14), bold=True, alignment=1)
-        
         doc.add_page_break()
-        
+
+        # Section order
         section_titles = [
             ('introduction', 'መግቢያ'),
             ('institutional', 'ተቋማዊ የማስፈጸም አቅም፣ የሀብት አጠቃቀም እና የአገልግሎት አሰጣጥ አሰራር ማጎልበት ስራዎችን በተመለከተ'),
@@ -1611,231 +1614,219 @@ class GenerateReportDocument(APIView):
             ('challenges', 'በአፈፃፀም ሂደት ያጋጣሙ ተግዳሮቶችና የተወሰዱ የመፍትሔ እርምጃዎች'),
             ('conclusion', 'ማጠቃለያ')
         ]
-    
+
         for section_key, section_title in section_titles:
-            
+            # Introduction  
             if section_key == 'introduction':
                 intro_summaries = summaries_queryset.filter(type='መግቢያ')
                 if intro_summaries.exists():
                     intro_heading = doc.add_paragraph("መግቢያ")
                     set_paragraph_style(intro_heading, font_size=Pt(14), bold=True)
-                    
                     for summary in intro_summaries:
                         if summary.description:
                             desc_para = doc.add_paragraph(summary.description)
                             set_paragraph_style(desc_para, font_size=Pt(12))
-                        
-                        for summary_file in summary.summary_files.all():
-                            if summary_file.photos and os.path.exists(summary_file.photos.path):
+                        for file in summary.summary_files.all():
+                            if file.photos and os.path.exists(file.photos.path):
                                 img_para = doc.add_paragraph()
-                                add_picture_to_run(img_para.add_run(), summary_file.photos.path, width=Inches(5))
+                                add_picture_to_run(img_para.add_run(), file.photos.path, width=Inches(5))
                                 img_para.alignment = 1
-                        
                         for subtitle in summary.summary_subtitle.all():
                             if subtitle.subtitle:
                                 sub_para = doc.add_paragraph(subtitle.subtitle)
                                 set_paragraph_style(sub_para, font_size=Pt(12), bold=True)
-                            
                             if subtitle.description:
                                 sub_desc_para = doc.add_paragraph(subtitle.description)
                                 set_paragraph_style(sub_desc_para, font_size=Pt(11))
-                            
                             for photo in subtitle.summary_photo.all():
                                 if photo.photos and os.path.exists(photo.photos.path):
                                     photo_para = doc.add_paragraph()
                                     add_picture_to_run(photo_para.add_run(), photo.photos.path, width=Inches(4))
                                     photo_para.alignment = 1
-                    
                     doc.add_page_break()
-            
+
+            # Institutional 
             elif section_key == 'institutional':
-                institutional_summaries = summaries_queryset.filter(
+                inst_summaries = summaries_queryset.filter(
                     type='ተቋማዊ የማስፈጸም አቅም፣ የሀብት አጠቃቀም እና የአገልግሎት አሰጣጥ አሰራር ማጎልበት ስራዎችን በተመለከተ'
                 )
-                if institutional_summaries.exists():
+                if inst_summaries.exists():
                     inst_heading = doc.add_paragraph("ተቋማዊ የማስፈጸም አቅም፣ የሀብት አጠቃቀም እና የአገልግሎት አሰጣጥ አሰራር ማጎልበት ስራዎችን በተመለከተ")
                     set_paragraph_style(inst_heading, font_size=Pt(14), bold=True)
-                    
-                    for summary in institutional_summaries:
+                    for summary in inst_summaries:
                         if summary.description:
                             desc_para = doc.add_paragraph(summary.description)
                             set_paragraph_style(desc_para, font_size=Pt(12))
-                        
-                        for summary_file in summary.summary_files.all():
-                            if summary_file.photos and os.path.exists(summary_file.photos.path):
+                        for file in summary.summary_files.all():
+                            if file.photos and os.path.exists(file.photos.path):
                                 img_para = doc.add_paragraph()
-                                add_picture_to_run(img_para.add_run(), summary_file.photos.path, width=Inches(5))
+                                add_picture_to_run(img_para.add_run(), file.photos.path, width=Inches(5))
                                 img_para.alignment = 1
-                        
                         for subtitle in summary.summary_subtitle.all():
                             if subtitle.subtitle:
                                 sub_para = doc.add_paragraph(subtitle.subtitle)
                                 set_paragraph_style(sub_para, font_size=Pt(12), bold=True)
-                            
                             if subtitle.description:
                                 sub_desc_para = doc.add_paragraph(subtitle.description)
                                 set_paragraph_style(sub_desc_para, font_size=Pt(11))
-                            
                             for photo in subtitle.summary_photo.all():
                                 if photo.photos and os.path.exists(photo.photos.path):
                                     photo_para = doc.add_paragraph()
                                     add_picture_to_run(photo_para.add_run(), photo.photos.path, width=Inches(4))
                                     photo_para.alignment = 1
-                    
                     doc.add_page_break()
-            
+
+            # Strategic Goals (with KPI descriptions) 
             elif section_key == 'strategic_goals':
                 from collections import defaultdict
-                strategic_goals_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
-                
+                strategic_dict = defaultdict(lambda: defaultdict(list))
+                seen_descriptions = set()
+
                 for annual_kpi in annual_kpis_queryset:
                     strategic_goal = annual_kpi.kpi.main_goal_id.strategic_goal_id
                     main_goal = annual_kpi.kpi.main_goal_id
                     kpi = annual_kpi.kpi
-                    kpi_descriptions = list(annual_kpi.kpidescription.all())
-                    strategic_goals_dict[strategic_goal][main_goal][kpi].extend(kpi_descriptions)
-                
-                if strategic_goals_dict:
-                    strategic_heading = doc.add_paragraph("ስትራተጂክ ግብ እና ተዛማጅ የስራ አፈፃፀም")
-                    set_paragraph_style(strategic_heading, font_size=Pt(14), bold=True)
-                    
-                    strategic_counter = 0
-                    for strategic_goal, main_goals_dict in strategic_goals_dict.items():
-                        strategic_counter += 1
-                        
-                        strategic_goal_para = doc.add_paragraph(f"{strategic_counter}. {strategic_goal.name}")
-                        set_paragraph_style(strategic_goal_para, font_size=Pt(13), bold=True)
-                        
-                        main_goal_counter = 0
-                        for main_goal, kpis_dict in main_goals_dict.items():
-                            main_goal_counter += 1
-                            
-                            main_goal_para = doc.add_paragraph(f"   {strategic_counter}.{main_goal_counter}. {main_goal.name}")
-                            set_paragraph_style(main_goal_para, font_size=Pt(12), bold=True)
-                            
+
+                    for kpi_desc in annual_kpi.kpidescription.all():
+                        for desc in kpi_desc.description.all():
+                            desc_key = f"{kpi.id}_{desc.id}"
+                            if desc_key not in seen_descriptions:
+                                seen_descriptions.add(desc_key)
+                                strategic_dict[strategic_goal][main_goal].append({
+                                    'kpi': kpi,
+                                    'description': desc,
+                                    'photos': list(desc.description_photo.all())
+                                })
+
+                if strategic_dict:
+                    strat_heading = doc.add_paragraph("ስትራተጂክ ግብ እና ተዛማጅ የስራ አፈፃፀም")
+                    set_paragraph_style(strat_heading, font_size=Pt(14), bold=True)
+
+                    strat_counter = 0
+                    for strategic_goal, main_dict in strategic_dict.items():
+                        strat_counter += 1
+                        sg_para = doc.add_paragraph(f"{strat_counter}. {strategic_goal.name}")
+                        set_paragraph_style(sg_para, font_size=Pt(13), bold=True)
+
+                        main_counter = 0
+                        for main_goal, items in main_dict.items():
+                            main_counter += 1
+                            mg_para = doc.add_paragraph(f"   {strat_counter}.{main_counter}. {main_goal.name}")
+                            set_paragraph_style(mg_para, font_size=Pt(12), bold=True)
+
+                            # Group by KPI
+                            kpi_groups = defaultdict(list)
+                            for it in items:
+                                kpi_groups[it['kpi']].append(it)
+
                             kpi_counter = 0
-                            for kpi, kpi_descriptions in kpis_dict.items():
+                            for kpi, desc_list in kpi_groups.items():
                                 kpi_counter += 1
-                                
-                                kpi_para = doc.add_paragraph(f"      {strategic_counter}.{main_goal_counter}.{kpi_counter}. {kpi.name}")
+                                kpi_para = doc.add_paragraph(f"      {strat_counter}.{main_counter}.{kpi_counter}. {kpi.name}")
                                 set_paragraph_style(kpi_para, font_size=Pt(11), bold=False)
-                                
-                                for kpi_desc in kpi_descriptions:
-                                    for desc in kpi_desc.description.all():
-                                        if desc.description:
-                                            desc_text = "         " + desc.description
-                                            desc_para = doc.add_paragraph(desc_text)
-                                            set_paragraph_style(desc_para, font_size=Pt(11))
-                                        
-                                        for photo in desc.description_photo.all():
-                                            if photo.photos and os.path.exists(photo.photos.path):
-                                                photo_para = doc.add_paragraph()
-                                                photo_run = photo_para.add_run("         ")
-                                                photo_run.font.size = Pt(11)
-                                                add_picture_to_run(photo_para.add_run(), photo.photos.path, width=Inches(4))
-                                                photo_para.alignment = 1
-                    
+
+                                for d in desc_list:
+                                    if d['description'] and d['description'].description:
+                                        desc_text = "         " + d['description'].description
+                                        desc_para = doc.add_paragraph(desc_text)
+                                        set_paragraph_style(desc_para, font_size=Pt(11))
+                                    for photo in d['photos']:
+                                        if photo.photos and os.path.exists(photo.photos.path):
+                                            photo_para = doc.add_paragraph()
+                                            photo_run = photo_para.add_run("         ")
+                                            photo_run.font.size = Pt(11)
+                                            add_picture_to_run(photo_para.add_run(), photo.photos.path, width=Inches(4))
+                                            photo_para.alignment = 1
                     doc.add_page_break()
-            
+
+            # Performance Table
             elif section_key == 'performance_table':
                 if annual_kpis_queryset.exists():
                     table_heading = doc.add_paragraph("የአፈፃፀም ሰንጠረዥ")
                     set_paragraph_style(table_heading, font_size=Pt(14), bold=True)
-                    
                     generate_kpi_performance_table(doc, request, filters)
-                    
                     doc.add_page_break()
-            
+
+            #  Challenges 
             elif section_key == 'challenges':
-                challenges_summaries = summaries_queryset.filter(
+                chall_summaries = summaries_queryset.filter(
                     type='በአፈፃፀም ሂደት ያጋጣሙ ተግዳሮቶችና የተወሰዱ የመፍትሔ እርምጃዎች'
                 )
-                if challenges_summaries.exists():
-                    challenges_heading = doc.add_paragraph("በአፈፃፀም ሂደት ያጋጣሙ ተግዳሮቶችና የተወሰዱ የመፍትሔ እርምጃዎች")
-                    set_paragraph_style(challenges_heading, font_size=Pt(14), bold=True)
-                    
-                    for summary in challenges_summaries:
+                if chall_summaries.exists():
+                    chall_heading = doc.add_paragraph("በአፈፃፀም ሂደት ያጋጣሙ ተግዳሮቶችና የተወሰዱ የመፍትሔ እርምጃዎች")
+                    set_paragraph_style(chall_heading, font_size=Pt(14), bold=True)
+                    for summary in chall_summaries:
                         if summary.description:
                             desc_para = doc.add_paragraph(summary.description)
                             set_paragraph_style(desc_para, font_size=Pt(12))
-                        
-                        for summary_file in summary.summary_files.all():
-                            if summary_file.photos and os.path.exists(summary_file.photos.path):
+                        for file in summary.summary_files.all():
+                            if file.photos and os.path.exists(file.photos.path):
                                 img_para = doc.add_paragraph()
-                                add_picture_to_run(img_para.add_run(), summary_file.photos.path, width=Inches(5))
+                                add_picture_to_run(img_para.add_run(), file.photos.path, width=Inches(5))
                                 img_para.alignment = 1
-                        
                         for subtitle in summary.summary_subtitle.all():
                             if subtitle.subtitle:
                                 sub_para = doc.add_paragraph(subtitle.subtitle)
                                 set_paragraph_style(sub_para, font_size=Pt(12), bold=True)
-                            
                             if subtitle.description:
                                 sub_desc_para = doc.add_paragraph(subtitle.description)
                                 set_paragraph_style(sub_desc_para, font_size=Pt(11))
-                            
                             for photo in subtitle.summary_photo.all():
                                 if photo.photos and os.path.exists(photo.photos.path):
                                     photo_para = doc.add_paragraph()
                                     add_picture_to_run(photo_para.add_run(), photo.photos.path, width=Inches(4))
                                     photo_para.alignment = 1
-                    
                     doc.add_page_break()
-            
+
+            # Conclusion  
             elif section_key == 'conclusion':
-                conclusion_summaries = summaries_queryset.filter(type='ማጠቃለያ')
-                if conclusion_summaries.exists():
-                    conclusion_heading = doc.add_paragraph("ማጠቃለያ")
-                    set_paragraph_style(conclusion_heading, font_size=Pt(14), bold=True)
-                    
-                    for summary in conclusion_summaries:
+                conc_summaries = summaries_queryset.filter(type='ማጠቃለያ')
+                if conc_summaries.exists():
+                    conc_heading = doc.add_paragraph("ማጠቃለያ")
+                    set_paragraph_style(conc_heading, font_size=Pt(14), bold=True)
+                    for summary in conc_summaries:
                         if summary.description:
                             desc_para = doc.add_paragraph(summary.description)
                             set_paragraph_style(desc_para, font_size=Pt(12))
-                        
-                        for summary_file in summary.summary_files.all():
-                            if summary_file.photos and os.path.exists(summary_file.photos.path):
+                        for file in summary.summary_files.all():
+                            if file.photos and os.path.exists(file.photos.path):
                                 img_para = doc.add_paragraph()
-                                add_picture_to_run(img_para.add_run(), summary_file.photos.path, width=Inches(5))
+                                add_picture_to_run(img_para.add_run(), file.photos.path, width=Inches(5))
                                 img_para.alignment = 1
-                        
                         for subtitle in summary.summary_subtitle.all():
                             if subtitle.subtitle:
                                 sub_para = doc.add_paragraph(subtitle.subtitle)
                                 set_paragraph_style(sub_para, font_size=Pt(12), bold=True)
-                            
                             if subtitle.description:
                                 sub_desc_para = doc.add_paragraph(subtitle.description)
                                 set_paragraph_style(sub_desc_para, font_size=Pt(11))
-                            
                             for photo in subtitle.summary_photo.all():
                                 if photo.photos and os.path.exists(photo.photos.path):
                                     photo_para = doc.add_paragraph()
                                     add_picture_to_run(photo_para.add_run(), photo.photos.path, width=Inches(4))
                                     photo_para.alignment = 1
-        
+
+        # Save and convert 
         try:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp_file:
                 temp_path = tmp_file.name
                 doc.save(temp_path)
-            
+
             doc_dir = os.path.join(settings.MEDIA_ROOT, "documents")
             os.makedirs(doc_dir, exist_ok=True)
-            
+
             safe_qualifier = re.sub(r"\W+", "_", org_name)
             base_filename = f"{year}_{quarter or 'annual'}_{safe_qualifier}_report"
             docx_filename = f"{base_filename}.docx"
             pdf_filename = f"{base_filename}.pdf"
-            
+
             docx_rel = os.path.join("documents", docx_filename)
             pdf_rel = os.path.join("documents", pdf_filename)
-            docx_full = os.path.join(doc_dir, docx_filename)
-            pdf_full = os.path.join(doc_dir, pdf_filename)
-            
+
             with open(temp_path, "rb") as f:
                 default_storage.save(docx_rel, f)
             os.remove(temp_path)
-            
+
             actual_docx_path = default_storage.path(docx_rel)
             subprocess.run(
                 [
@@ -1851,16 +1842,17 @@ class GenerateReportDocument(APIView):
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
-            
+
+            base_url = request.build_absolute_uri('/')[:-1]
             return JsonResponse(
                 {
                     "message": "Document saved successfully",
-                    "docx_file_path": f"http://127.0.0.1:8000/media/documents/{docx_filename}",
-                    "pdf_file_path": f"http://127.0.0.1:8000/media/documents/{pdf_filename}",
+                    "docx_file_path": f"{base_url}/media/documents/{docx_filename}",
+                    "pdf_file_path": f"{base_url}/media/documents/{pdf_filename}",
                 },
                 status=200,
             )
-        
+
         except subprocess.CalledProcessError as e:
             print(f"LibreOffice conversion failed: {e}")
             return JsonResponse({"error": f"LibreOffice conversion failed: {e}"}, status=500)
@@ -1869,7 +1861,6 @@ class GenerateReportDocument(APIView):
             import traceback
             traceback.print_exc()
             return JsonResponse({"error": str(e)}, status=500)
-
 def generate_kpi_performance_table(doc, request, filters=None):
     """Generate KPI performance table with correct indexing and strategic goal ordering"""
     
