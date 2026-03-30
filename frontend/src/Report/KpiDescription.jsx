@@ -425,6 +425,18 @@ const [editName,setEditName] = useState("");
                     >
                       {t("MAIN.INPUTFIELD.KPI")}
                     </th>
+                    <th
+                      scope="col"
+                      className="p-2 text-left text-md font-bold text-black  tracking-wider"
+                    >
+                      {t("MAIN.TABLE.YEAR")}
+                    </th>
+                    <th
+                      scope="col"
+                      className="p-2 text-left text-md font-bold text-black  tracking-wider"
+                    >
+                      {t("MAIN.TABLE.MEASURE")}
+                    </th>
                     {/* <th
                       scope="col"
                       className="p-2 text-left text-md font-bold text-black  tracking-wider"
@@ -450,6 +462,12 @@ const [editName,setEditName] = useState("");
                           </td>
                           <td className="p-2  text-left text-sm font-normal text-blue-gray-900">
                             {items.kpi_name}
+                          </td>
+                          <td className="p-2  text-left text-sm font-normal text-blue-gray-900">
+                            {items.kpi_year}
+                          </td>
+                          <td className="p-2  text-left text-sm font-normal text-blue-gray-900">
+                            {items.measure_name}
                           </td>
 
                           <td className="p-2  text-left text-sm font-normal text-blue-gray-900">

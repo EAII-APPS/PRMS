@@ -27,6 +27,12 @@ def dashboard_data(request):
     filter_kpi = request.query_params.get('kpi')
 
     try:
+        annual_kpi_queryset = AnnualKPI.objects.none()
+        kpi_queryset = KPI.objects.none()
+        main_goal_queryset = MainGoal.objects.none()
+        strategic_goal_queryset = StrategicGoal.objects.none()
+        user_queryset = User.objects.none()
+
         # Base query filters
         if request.user.monitoring_id or request.user.is_superadmin:
             annual_kpi_queryset = AnnualKPI.objects.filter(year=filter_year)
@@ -110,6 +116,11 @@ def dashboard_data(request):
                 user_queryset = user_queryset.filter(division_id__in=division_ids).distinct()
 
         # Fetch current counts
+        strategic_goal_queryset = strategic_goal_queryset.filter(
+            status=True, is_deleted=False
+        )
+        main_goal_queryset = main_goal_queryset.filter(status=True, is_deleted=False)
+        kpi_queryset = kpi_queryset.filter(status=True)
         current_counts = {
             "strategic_goals": strategic_goal_queryset.count(),
             "main_goals": main_goal_queryset.count(),
@@ -330,7 +341,7 @@ def strategic_goal_performance(request, year):
     filter_kpi = request.query_params.get('kpi')
 
     # Fetch all Strategic Goals
-    all_strategic_goals = StrategicGoal.objects.all()
+    all_strategic_goals = StrategicGoal.objects.filter(status=True, is_deleted=False)
     division_ids = Division.objects.all().values_list('id', flat=True)
 
     if request.user.monitoring_id or request.user.is_superadmin:
@@ -346,9 +357,11 @@ def strategic_goal_performance(request, year):
         # Loop over each strategic goal to calculate aggregated performance
         for strategic_goal in all_strategic_goals:
             # Fetch all related MainGoals for this strategic goal
-            main_goals = MainGoal.objects.filter(strategic_goal_id=strategic_goal)
+            main_goals = MainGoal.objects.filter(
+                strategic_goal_id=strategic_goal, status=True, is_deleted=False
+            )
             # Fetch all related KPIs for these MainGoals
-            kpis = KPI.objects.filter(main_goal_id__in=main_goals)
+            kpis = KPI.objects.filter(main_goal_id__in=main_goals, status=True)
             if filter_kpi:
                 kpis = kpis.filter(id=filter_kpi)
 
@@ -399,9 +412,11 @@ def strategic_goal_performance(request, year):
         # Loop over each strategic goal to calculate aggregated performance
         for strategic_goal in all_strategic_goals:
             # Fetch all related MainGoals for this strategic goal
-            main_goals = MainGoal.objects.filter(strategic_goal_id=strategic_goal)
+            main_goals = MainGoal.objects.filter(
+                strategic_goal_id=strategic_goal, status=True, is_deleted=False
+            )
             # Fetch all related KPIs for these MainGoals
-            kpis = KPI.objects.filter(main_goal_id__in=main_goals)
+            kpis = KPI.objects.filter(main_goal_id__in=main_goals, status=True)
             if filter_kpi:
                 kpis = kpis.filter(id=filter_kpi)
 
@@ -442,9 +457,11 @@ def strategic_goal_performance(request, year):
         # Loop over each strategic goal to calculate aggregated performance
         for strategic_goal in all_strategic_goals:
             # Fetch all related MainGoals for this strategic goal
-            main_goals = MainGoal.objects.filter(strategic_goal_id=strategic_goal)
+            main_goals = MainGoal.objects.filter(
+                strategic_goal_id=strategic_goal, status=True, is_deleted=False
+            )
             # Fetch all related KPIs for these MainGoals
-            kpis = KPI.objects.filter(main_goal_id__in=main_goals)
+            kpis = KPI.objects.filter(main_goal_id__in=main_goals, status=True)
             if filter_kpi:
                 kpis = kpis.filter(id=filter_kpi)
 
@@ -488,6 +505,11 @@ def annual_kpi_table_data(request, year):
     filter_sector = request.query_params.get('sector')
     filter_division = request.query_params.get('division')
     filter_kpi = request.query_params.get('kpi')
+
+    def cap_pct(value):
+        if isinstance(value, (int, float)) and value > 100:
+            return 100
+        return value
 
     if request.user.monitoring_id or request.user.is_superadmin:
         # Fetch all AnnualKPI records for the given year
@@ -541,6 +563,8 @@ def annual_kpi_table_data(request, year):
             q3_performance = round((pr3 / pl3) * 100, 2) if pl3 and pr3 is not None else "N/A"
             q4_performance = round((pr4 / pl4) * 100, 2) if pl4 and pr4 is not None else "N/A"
             total_performance = round((total_actual / total_plan) * 100, 2) if total_plan > 0 else "N/A"
+
+            total_performance = cap_pct(total_performance)
 
             # Append the data to table_data
             table_data.append({
@@ -604,6 +628,8 @@ def annual_kpi_table_data(request, year):
             q4_performance = round((pr4 / pl4) * 100, 2) if pl4 and pr4 is not None else "N/A"
             total_performance = round((total_actual / total_plan) * 100, 2) if total_plan > 0 else "N/A"
 
+            total_performance = cap_pct(total_performance)
+
             # Append the data to table_data
             table_data.append({
                 "kpi": annual_kpi.kpi.name if annual_kpi.kpi else "N/A",
@@ -664,6 +690,8 @@ def annual_kpi_table_data(request, year):
             q4_performance = round((pr4 / pl4) * 100, 2) if pl4 and pr4 is not None else "N/A"
             total_performance = round((total_actual / total_plan) * 100, 2) if total_plan > 0 else "N/A"
 
+            total_performance = cap_pct(total_performance)
+
             # Append the data to table_data
             table_data.append({
                 "kpi": annual_kpi.kpi.name if annual_kpi.kpi else "N/A",
@@ -673,7 +701,7 @@ def annual_kpi_table_data(request, year):
                 "q2_performance(%)": q2_performance,
                 "q3_performance(%)": q3_performance,
                 "q4_performance(%)": q4_performance,
-                "total_performance(%)": 100 if total_performance > 100 else total_performance
+                "total_performance(%)": total_performance
 
             })
 

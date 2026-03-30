@@ -1,6 +1,6 @@
 {
   "LOGINPAGE": {
-    "LOGINPAGE": "PLANING MONITORING & REPORT SYSTEM(PMRS)",
+    "LOGINPAGE": "PLANING MONITORING & REPORTING SYSTEM(PMRS)",
     "LOGIN": "Login",
     "EMAIL": "Email",
     "PASSWORD": "Password",
@@ -11,6 +11,16 @@
     "TITLE": "PMRS",
     "WELCOME": "Welcome back,",
     "HERE": ". Here's your performance overview.",
+    "LOADING": "Loading...",
+    "ERROR": "Something went wrong.",
+    "RETRY": "Retry",
+    "REMINDERS": {
+      "SECTOR": "Sector Reminder",
+      "DIVISION": "Division Reminder",
+      "SOUND_PROMPT": "Enable a sound alert for active reminders?",
+      "ENABLE_SOUND": "Enable sound",
+      "NOT_NOW": "Not now"
+    },
     "PROFILE": {
       "MYPROFILE": "My Profile",
       "SETTING": "Setting",
@@ -23,6 +33,7 @@
     "DASHBOARD_PAGE": {
       "TITLE": "{{role}} Dashboard",
       "NO_ACTIVE_REMINDER": "No Active Reminders",
+      "NO_REMINDERS_YET": "No reminders yet.",
       "CREATE_NEW": "Create New",
       "DELETE": "Delete",
       "DELETE_CONFIRMATION": "Are you sure you want to delete this reminder?",

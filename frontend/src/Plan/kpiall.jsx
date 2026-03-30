@@ -57,6 +57,11 @@ function Kpiall() {
 
   const dispatch = useDispatch();
 
+  const canManageStatus = Boolean(
+    authInfo?.user?.is_superadmin || authInfo?.user?.monitoring_id
+  );
+  const shouldHideInactive = !canManageStatus;
+
 
 
   const { kpiAllData } = useSelector((state) => state.kpiall);
@@ -536,6 +541,7 @@ function Kpiall() {
 
   const [transformedData, setTransformedData] = useState([]);
   const [transformedDataMain, setTransformedDataMain] = useState([]);
+  const [updatingKpiStatus, setUpdatingKpiStatus] = useState({});
 
   useEffect(() => {
     if (!Array.isArray(kpiAllData)) {
@@ -559,6 +565,7 @@ function Kpiall() {
           sector_id,
           id,
           name,
+          status,
         } = curr;
 
         if (!acc[main_goal_id]) {
@@ -583,6 +590,7 @@ function Kpiall() {
           weight,
           id,
           name,
+          status: status ?? true,
         });
 
         return acc;
@@ -594,6 +602,48 @@ function Kpiall() {
     const transformed = transformData(kpiAllData);
     setTransformedData(transformed);
   }, [kpiAllData]);
+
+  const updateTransformedKpiStatus = (kpiId, nextStatus) => {
+    setTransformedData((prev) =>
+      prev.map((mainGoal) => ({
+        ...mainGoal,
+        kpi: (mainGoal.kpi || []).map((kpi) =>
+          kpi.id === kpiId ? { ...kpi, status: nextStatus } : kpi
+        ),
+      }))
+    );
+  };
+
+  const handleToggleKpiStatus = async (kpiId, nextStatus, previousStatus) => {
+    if (!canManageStatus) return;
+    if (updatingKpiStatus[kpiId]) return;
+
+    setUpdatingKpiStatus((prev) => ({ ...prev, [kpiId]: true }));
+    updateTransformedKpiStatus(kpiId, nextStatus);
+
+    try {
+      await axiosInistance.put(
+        `/planApp/KPI/${kpiId}/`,
+        { status: nextStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      dispatch(fetchKpiAllData());
+      toast.success("Status updated");
+    } catch (error) {
+      updateTransformedKpiStatus(kpiId, previousStatus);
+      toast.error("Failed to update status");
+    } finally {
+      setUpdatingKpiStatus((prev) => {
+        const next = { ...prev };
+        delete next[kpiId];
+        return next;
+      });
+    }
+  };
 
 
   useEffect(() => {
@@ -842,10 +892,39 @@ function Kpiall() {
 
                                         <td className="p-2 text-left text-sm font-normal text-blue-gray-900">
                                           {/* Status */}
-                                          <label className="inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" defaultChecked className="sr-only peer" />
-                                            <div className="relative w-9 h-5 rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[-1px] after:start-[-5px] after:bg-red-900 after:border after:rounded-full after:h-5 after:w-5 after:transition-all bg-white border border-gray-200 peer-checked:after:bg-green-900"></div>
-                                          </label>
+                                          {(() => {
+                                            const isActive = kpiItem.status !== false;
+                                            const isUpdating = Boolean(
+                                              updatingKpiStatus[kpiItem.id]
+                                            );
+                                            const isDisabled =
+                                              !canManageStatus || isUpdating;
+
+                                            return (
+                                              <label
+                                                className={`inline-flex items-center ${
+                                                  isDisabled
+                                                    ? "cursor-not-allowed opacity-60"
+                                                    : "cursor-pointer"
+                                                }`}
+                                              >
+                                                <input
+                                                  type="checkbox"
+                                                  checked={isActive}
+                                                  disabled={isDisabled}
+                                                  onChange={() =>
+                                                    handleToggleKpiStatus(
+                                                      kpiItem.id,
+                                                      !isActive,
+                                                      isActive
+                                                    )
+                                                  }
+                                                  className="sr-only peer"
+                                                />
+                                                <div className="relative w-9 h-5 rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[-1px] after:start-[-5px] after:bg-red-900 after:border after:rounded-full after:h-5 after:w-5 after:transition-all bg-white border border-gray-200 peer-checked:after:bg-green-900"></div>
+                                              </label>
+                                            );
+                                          })()}
                                         </td>
                                         <td className="p-2 text-left text-sm font-normal text-blue-gray-900">
                                           {/* Actions */}
@@ -998,8 +1077,9 @@ function Kpiall() {
                     setMain_goal(e), setErrorEmptyMessage("");
                   }}
                 >
-                  {mainGoalData &&
-                    mainGoalData.map((items) => (
+                  {(Array.isArray(mainGoalData) ? mainGoalData : [])
+                    .filter((mg) => !shouldHideInactive || mg.status !== false)
+                    .map((items) => (
                       <Option
                         key={items.id}
                         value={items.id}
@@ -1191,8 +1271,9 @@ function Kpiall() {
                     setMainGoalIdEdit(e), setErrorEmptyMessage("");
                   }}
                 >
-                  {mainGoalData &&
-                    mainGoalData.map((items) => (
+                  {(Array.isArray(mainGoalData) ? mainGoalData : [])
+                    .filter((mg) => !shouldHideInactive || mg.status !== false)
+                    .map((items) => (
                       <Option
                         key={items.id}
                         value={items.id}
@@ -1274,8 +1355,9 @@ function Kpiall() {
                     setMainGoalIdEdit(e), setErrorEmptyMessage("");
                   }}
                 >
-                  {mainGoalData &&
-                    mainGoalData.map((items) => (
+                  {(Array.isArray(mainGoalData) ? mainGoalData : [])
+                    .filter((mg) => !shouldHideInactive || mg.status !== false)
+                    .map((items) => (
                       <Option
                         key={items.id}
                         value={items.id}

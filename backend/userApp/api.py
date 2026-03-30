@@ -261,11 +261,21 @@ class SectorReminderViewSet(viewsets.ModelViewSet):
         SectorReminder.objects.all().delete()
         serializer.save(added_by=self.request.user)
 
-    @action(detail=False, methods=['delete'], url_path='latest')
-    def delete_latest(self, request):
-        latest_reminder = SectorReminder.objects.filter(added_by=self.request.user).latest('id')
+    @action(detail=False, methods=['get', 'delete'], url_path='latest')
+    def latest(self, request):
+        latest_reminder = SectorReminder.objects.order_by('-id').first()
+
+        if request.method.lower() == 'get':
+            if not latest_reminder:
+                return Response([], status=status.HTTP_200_OK)
+            serializer = self.get_serializer([latest_reminder], many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # DELETE (idempotent)
+        if not latest_reminder:
+            return Response(status=status.HTTP_204_NO_CONTENT)
         latest_reminder.delete()
-        return Response(status=204)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class DivisionReminderViewSet(viewsets.ModelViewSet):
     queryset = DivisionReminder.objects.all()
@@ -280,9 +290,19 @@ class DivisionReminderViewSet(viewsets.ModelViewSet):
         DivisionReminder.objects.all().delete()
         serializer.save(added_by=self.request.user)
 
-    @action(detail=False, methods=['delete'], url_path='latest')
-    def delete_latest(self, request):
-        latest_reminder = DivisionReminder.objects.filter(added_by=self.request.user).latest('id')
+    @action(detail=False, methods=['get', 'delete'], url_path='latest')
+    def latest(self, request):
+        latest_reminder = DivisionReminder.objects.order_by('-id').first()
+
+        if request.method.lower() == 'get':
+            if not latest_reminder:
+                return Response([], status=status.HTTP_200_OK)
+            serializer = self.get_serializer([latest_reminder], many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # DELETE (idempotent)
+        if not latest_reminder:
+            return Response(status=status.HTTP_204_NO_CONTENT)
         latest_reminder.delete()
-        return Response(status=204)
+        return Response(status=status.HTTP_204_NO_CONTENT)
    

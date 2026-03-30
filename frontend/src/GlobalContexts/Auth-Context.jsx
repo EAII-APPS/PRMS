@@ -6,41 +6,34 @@ const AuthProvider = ({ children }) => {
   const [authInfo, setAuthInfo] = useState(null);
   const [error, setError] = useState(null);
 
-  const [token, setToken] = useState(localStorage.getItem("access"));
-
-  const handleStorageChange = () => {
-    setToken(localStorage.getItem("access"));
-  };
-
   useEffect(() => {
-    handleStorageChange();
-  }, []);
+    let cancelled = false;
 
-  useEffect(() => {
-    handleStorageChange();
-    if (token) {
-      const fetchData = async () => {
-        try {
-          const response = await axiosInstance.get("userApp/users/my_profile", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const data = response.data;
+    const fetchProfile = async () => {
+      const token = localStorage.getItem("access");
+      if (!token) {
+        setAuthInfo(null);
+        return;
+      }
+      try {
+        const response = await axiosInstance.get("userApp/users/my_profile");
+        if (cancelled) return;
+        setAuthInfo({ user: response.data, access: token });
+      } catch (e) {
+        if (cancelled) return;
+        setError({ error: { message: "server is not responding" } });
+      }
+    };
 
-          setAuthInfo({
-            user: data,
-            access: token,
-          });
-        } catch (error) {
-          setError({
-            error: { message: "server is not responding" },
-          });
-        }
-      };
+    const onTokens = () => fetchProfile();
 
-      fetchData();
-    }
+    window.addEventListener("auth:tokens", onTokens);
+    fetchProfile();
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("auth:tokens", onTokens);
+    };
   }, []);
 
   return (

@@ -107,6 +107,7 @@ function Kpi() {
     fetchkpiData();
   }, [selectedYear]);
 
+
   const handleclear = async () => {
     const clearall = async () => {
       setSelectedDivision(null);
@@ -173,7 +174,6 @@ function Kpi() {
   const [initialUnit, setInitialUnit] = useState("");
   const [initialUnitId, setInitialUnitId] = useState("");
 
-  const [errorMessage, setErrorMessage] = useState("");
   const [errorMessageWeight, setErrorMessageWeight] = useState("");
   const [errorEmptyMessage, setErrorEmptyMessage] = useState("");
   const [operations, setOperation] = useState("sum");
@@ -302,6 +302,30 @@ function Kpi() {
   useEffect(() => {
     dispatch(fetchUniteData());
   }, []);
+
+  const extractApiErrorMessage = (error) => {
+    const data = error?.response?.data;
+    if (!data) return error?.message || "Request failed";
+    if (typeof data === "string") return data;
+    if (typeof data?.message === "string") return data.message;
+    if (typeof data?.detail === "string") return data.detail;
+    if (Array.isArray(data)) return data.filter(Boolean).join(" ");
+    if (typeof data === "object") {
+      for (const value of Object.values(data)) {
+        if (typeof value === "string") return value;
+        if (Array.isArray(value)) {
+          const joined = value.filter((v) => typeof v === "string").join(" ");
+          if (joined) return joined;
+        }
+      }
+      try {
+        return JSON.stringify(data);
+      } catch {
+        return "Request failed";
+      }
+    }
+    return "Request failed";
+  };
   const handleNumExtraction = (input) => {
     // Regular expression to match the number part
     const regex = /(\d*\.?\d+)/;
@@ -568,7 +592,6 @@ function Kpi() {
       setMeasure("");
       setWeight("");
       setOpen(false);
-      setErrorMessage("");
       setErrorMessageWeight("");
       setIsIncremental(false);
 
@@ -578,9 +601,7 @@ function Kpi() {
       });
 
     } catch (error) {
-      setErrorMessage(error.response.status);
-      setErrorMessage(error.response.data);
-      setErrorMessageWeight(error.response.data.message);
+      setErrorMessageWeight(extractApiErrorMessage(error));
     }
 
   };
@@ -811,15 +832,12 @@ function Kpi() {
       setOperationEdit("");
       setIsIncrementalEdit(false);
       setOpenEdit(false);
-      setErrorMessage("");
       toast.success(`KPI Updated successfully`, {
         autoClose: 2000,
         hideProgressBar: true,
       });
     } catch (error) {
-      setErrorMessage(error.response.status);
-
-      setErrorMessageWeight(error.response.data.message);
+      setErrorMessageWeight(extractApiErrorMessage(error));
     }
   };
   const handleDivisionChange = (event) => {
@@ -1693,7 +1711,7 @@ function Kpi() {
                   value={year}
                   color="blue"
                   onChange={(e) => {
-                    setYear(e), setErrorEmptyMessage(""), setErrorMessage("");
+                    setYear(e), setErrorEmptyMessage(""), setErrorMessageWeight("");
                   }}
                   arrow={<FontAwesomeIcon color="blue" icon={faCalendarDays} />}
                 >
@@ -2070,7 +2088,7 @@ function Kpi() {
               </div> */}
 
               <div className="w-11/12  justify-self-center">
-                {errorMessage && errorMessage === 403 && (
+                {!!errorMessageWeight && (
                   <h1 className="text-red-900 font-bold ml-3">
                     {errorMessageWeight}
                   </h1>
@@ -2303,7 +2321,7 @@ function Kpi() {
                 </select>
               </div>
               <div className="w-11/12  justify-self-center">
-                {errorMessage && errorMessage === 403 && (
+                {!!errorMessageWeight && (
                   <h1 className="text-red-900 font-bold ml-3">
                     {errorMessageWeight}
                   </h1>
@@ -2508,7 +2526,7 @@ function Kpi() {
                   value={yearEdit}
                   color="blue"
                   onChange={(e) => {
-                    setYearEdit(e), setErrorEmptyMessage(""), setErrorMessage("");
+                    setYearEdit(e), setErrorEmptyMessage(""), setErrorMessageWeight("");
                   }}
                   arrow={<FontAwesomeIcon color="blue" icon={faCalendarDays} />}
                 >
@@ -2888,7 +2906,7 @@ function Kpi() {
               </div> */}
 
               <div className="w-11/12  justify-self-center">
-                {errorMessage && errorMessage === 403 && (
+                {!!errorMessageWeight && (
                   <h1 className="text-red-900 font-bold ml-3">
                     {errorMessageWeight}
                   </h1>

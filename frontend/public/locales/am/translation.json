@@ -11,6 +11,16 @@
     "TITLE": "የእቅድና ሪፖርት መከታተያ ሲስተም",
     "WELCOME": "እንኳን ደህና መጡ፣",
     "HERE": "አጠቃላይ የአፈጻጸሞን እዚህ ያገኛሉ።",
+    "LOADING": "Loading...",
+    "ERROR": "Something went wrong.",
+    "RETRY": "Retry",
+    "REMINDERS": {
+      "SECTOR": "Sector Reminder",
+      "DIVISION": "Division Reminder",
+      "SOUND_PROMPT": "Enable a sound alert for active reminders?",
+      "ENABLE_SOUND": "Enable sound",
+      "NOT_NOW": "Not now"
+    },
     "PROFILE": {
       "MYPROFILE": "የኔ ፕሮፋይል",
       "SETTING": "መቼት",
@@ -23,6 +33,7 @@
     "DASHBOARD_PAGE": {
       "TITLE": "የ{{role}} ዳሽቦርድ",
       "NO_ACTIVE_REMINDER": "ምንም ንቁ ማስታወሻዎች የሉም",
+      "NO_REMINDERS_YET": "No reminders yet.",
       "CREATE_NEW": "አዲስ ይፍጠሩ",
       "DELETE": "ሰርዝ",
       "DELETE_CONFIRMATION": "ይህን ማስታወሻ መሰረዝ እርግጠኛ ነዎት?",

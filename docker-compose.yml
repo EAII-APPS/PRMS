@@ -29,7 +29,7 @@ services:
     ports:
       - "4020:8000"
     volumes:
-      - backend_code:/app
+      # - backend_code:/app
       - backend_media:/app/media
     environment:
       - PYTHONUNBUFFERED=1
@@ -60,7 +60,7 @@ services:
     restart: unless-stopped
     volumes:
       - backend_media:/app/media
-      - frontend_build:/usr/share/nginx/html
+      # - frontend_build:/usr/share/nginx/html
     networks:
       - prms_network
 
@@ -153,9 +153,9 @@ networks:
 # ------------------
 volumes:
   postgres_data:
-  backend_code:
+  # backend_code:
   backend_media:
-  frontend_build:
+  # frontend_build:
   prometheus_data:
   grafana_data:
   loki_wal:

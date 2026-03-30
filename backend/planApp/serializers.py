@@ -74,6 +74,7 @@ class AnnualKPISerializer(serializers.ModelSerializer):
     kpi_name = serializers.CharField(source='kpi.name', read_only=True)
     maingoal_name = serializers.CharField(source='kpi.main_goal_id.name', read_only=True)
     division_name = serializers.CharField(source='division_id.name', read_only=True)
+    status = serializers.BooleanField(source='kpi.status', read_only=True)
   # Ensure this matches the method name below
 
     class Meta:
@@ -82,6 +83,7 @@ class AnnualKPISerializer(serializers.ModelSerializer):
             'id',
             'kpi',
             'kpi_name',
+            'status',
             'division_id',
             'maingoal_name',  # This will use the get_maingoal_name method
             'measure',

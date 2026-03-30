@@ -9,8 +9,7 @@ import { useTranslation } from "react-i18next";
 import i18next from "i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, Link } from "react-router-dom";
-import axiosInistance from "../GlobalContexts/Base_url";
-import instance from "../GlobalContexts/Base_url"
+import axiosInstance from "../GlobalContexts/Base_url";
 
 import {
   Typography,
@@ -91,8 +90,6 @@ function ProfileMenu() {
 
   const authInfo = useAuth();
 
-  const token = localStorage.getItem("access");
-
   const { t } = useTranslation();
 
   const closeMenu = () => setIsMenuOpen(false);
@@ -100,11 +97,7 @@ function ProfileMenu() {
   const navigate = useNavigate();
   const handleLogout = async () => {
     try {
-      await axiosInistance.get("/userApp/logout", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axiosInstance.get("/userApp/logout");
       const clearedFilters = { year: "", sector: "", division: "", kpi: "" };
       localStorage.setItem("filters", JSON.stringify(clearedFilters)); // Clear localStorage
       localStorage.clear(); // clears all localStorage keys
@@ -128,32 +121,22 @@ function ProfileMenu() {
   const [refresh, setRefresh] = useState(false);
   // Fetch latest sector reminder
   const fetchLatestSectorReminder = () => {
-    fetch(`${instance.defaults.baseURL}userApp/sector_reminders/`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.length > 0) {
-          setSectorDate(data[0].submision_dateof_sector);
-        } else {
-          setSectorDate(null);
-        }
+    axiosInstance
+      .get("userApp/sector_reminders/")
+      .then((response) => {
+        const data = response.data;
+        setSectorDate(Array.isArray(data) && data.length > 0 ? data[0].submision_dateof_sector : null);
       })
       .catch((error) => console.error("Error fetching sector reminders:", error));
   };
 
   // Fetch latest division reminder
   const fetchLatestDivisionReminder = () => {
-    fetch(`${instance.defaults.baseURL}userApp/division_reminders/`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.length > 0) {
-          setDivisionDate(data[0].submision_dateof_division);
-        } else {
-          setDivisionDate(null);
-        }
+    axiosInstance
+      .get("userApp/division_reminders/")
+      .then((response) => {
+        const data = response.data;
+        setDivisionDate(Array.isArray(data) && data.length > 0 ? data[0].submision_dateof_division : null);
       })
       .catch((error) => console.error("Error fetching division reminders:", error));
   };
@@ -164,7 +147,7 @@ function ProfileMenu() {
   useEffect(() => {
     fetchLatestSectorReminder();
     fetchLatestDivisionReminder();
-  }, [token, refresh]);
+  }, [refresh]);
 
 
   const handleShow = () => {

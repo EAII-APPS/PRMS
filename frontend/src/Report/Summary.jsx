@@ -111,6 +111,20 @@ const years = Array.from({ length: ethiopianYear - 2013 + 2 }, (_, index) => 201
       setCurrentPage(currentPage - 1);
     }
   };
+  const summaryOrder = [
+    "መግቢያ",
+    "ተቋማዊ የማስፈጸም አቅም",
+    "በአፈፃፀም ሂደት ያጋጣሙ ተግዳሮቶችና የተወሰዱ የመፍትሔ እርምጃዎች",
+    "ማጠቃለያ",
+  ];
+
+  const getSummaryOrder = (title = "") => {
+    const index = summaryOrder.findIndex((name) =>
+      title.trim().startsWith(name)
+    );
+    return index === -1 ? summaryOrder.length : index;
+  };
+
   // Group the rows by year, quarter, and user type
 const groupedRows = tableRows.reduce((acc, row) => {
   const userType =
@@ -131,7 +145,12 @@ const groupedRows = tableRows.reduce((acc, row) => {
 }, {});
 
 // Convert grouped rows to an array for rendering
-const groupedData = Object.values(groupedRows);
+const groupedData = Object.values(groupedRows).map((group) => ({
+  ...group,
+  rows: [...group.rows].sort(
+    (a, b) => getSummaryOrder(a.title) - getSummaryOrder(b.title)
+  ),
+}));
 
   // Calculate data for current page
   const indexOfLastItem = currentPage * itemsPerPage;

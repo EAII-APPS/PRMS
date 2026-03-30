@@ -12,6 +12,7 @@ import { Outlet, Link } from "react-router-dom";
 import { TbRulerMeasure } from "react-icons/tb";
 import NavBar from "./NavBar";
 import Footer from "./Footer";
+import ReminderDropdown from "./ReminderDropdown";
 import { useAuth } from "../GlobalContexts/Auth-Context";
 import { useTranslation } from "react-i18next";
 import Loader from "react-js-loader";
@@ -31,7 +32,6 @@ function SideBar({ height, maxHeight }) {
   const { t } = useTranslation();
 
   const authInfo = useAuth();
-
   // const error = useAuth();
 
   const [open, setOpen] = useState(0);
@@ -512,7 +512,7 @@ function SideBar({ height, maxHeight }) {
                   </List>
                 </AccordionBody>
               </Accordion>
-              <Accordion
+              {/* <Accordion
                 open={open === 6}
                 icon={
                   <ChevronDownIcon
@@ -584,7 +584,7 @@ function SideBar({ height, maxHeight }) {
                       )}
                   </List>
                 </AccordionBody>
-              </Accordion>
+              </Accordion> */}
               <Accordion
                 open={open === 7}
                 icon={
@@ -675,6 +675,7 @@ function SideBar({ height, maxHeight }) {
           </Card>
           <div className="flex flex-col flex-1 w-full min-h-screen">
             <NavBar onSidebarToggle={handleSidebarToggle} />
+            <ReminderDropdown />
             <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarVisible ? "xl:pl-[17rem]" : "xl:pl-0"}`}>
               <div className="p-4 md:p-8 mt-16 flex-1" id="detail">
                 <Outlet />

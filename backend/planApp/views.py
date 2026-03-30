@@ -546,17 +546,19 @@ def handle_kpi(request,id=None):
             user = request.user
             kpis = KPI.objects.filter(id=id)
 
-            if user.monitoring_id:  # If the user has a monitoring_id, they can access all KPI
+            if user.monitoring_id or user.is_superadmin:  # Monitoring admin / superadmin can access all KPI (including inactive)
                 pass  # No additional filtering needed
             elif user.sector_id:
                 divisions = Division.objects.filter(sector_id=user.sectror_id).values_list('id',flat=True)
                 # Get all MainGoal IDs related to the user's sector
                 main_goal_ids = MainGoal.objects.filter(sector_id=user.sector_id.id).values_list('id', flat=True)
                 # Filter KPIs by these MainGoal IDs
-                kpis = kpis.filter(id=id,division_id__in=divisions ,main_goal_id__in=main_goal_ids)
+                kpis = kpis.filter(id=id,division_id__in=divisions ,main_goal_id__in=main_goal_ids, status=True)
             elif user.division_id:  # If the user has a division_id
                 # Filter KPIs by the user's division ID
-                kpis = kpis.filter(division_id=user.division_id.id)
+                kpis = kpis.filter(division_id=user.division_id.id, status=True)
+            else:
+                kpis = kpis.filter(status=True)
 
             serializer = KPISerializer(kpis, many=True)
             return Response(serializer.data)
@@ -564,7 +566,7 @@ def handle_kpi(request,id=None):
             user = request.user
             kpis = KPI.objects.filter()
 
-            if user.monitoring_id:  # If the user has a monitoring_id, they can access all KPI
+            if user.monitoring_id or user.is_superadmin:  # Monitoring admin / superadmin can access all KPI (including inactive)
                 pass  # No additional filtering needed
             elif user.sector_id:
                 user_sector_ids = []
@@ -574,10 +576,12 @@ def handle_kpi(request,id=None):
                 # Get all MainGoal IDs related to the user's sector
                 main_goal_ids = MainGoal.objects.filter(sector_id=user.sector_id.id).values_list('id', flat=True)
                 # Filter KPIs by these MainGoal IDs
-                kpis = kpis.filter(main_goal_id__in=main_goal_ids,division_id__in=divisions).distinct()
+                kpis = kpis.filter(main_goal_id__in=main_goal_ids,division_id__in=divisions, status=True).distinct()
             elif user.division_id:  # If the user has a division_id
                 # Filter KPIs by the user's division ID
-                kpis = kpis.filter(division_id__in=[user.division_id.id])
+                kpis = kpis.filter(division_id__in=[user.division_id.id], status=True)
+            else:
+                kpis = kpis.filter(status=True)
 
             serializer = KPISerializer(kpis, many=True)
             return Response(serializer.data)
@@ -588,7 +592,9 @@ def handle_kpi(request,id=None):
             kpis.updated_by_id = request.user.id
         except KPI.DoesNotExist:
             return Response({'error': 'Main goal does not exist'}, status=404)
-    
+
+        if 'status' in request.data and not (request.user.monitoring_id or request.user.is_superadmin):
+            return Response({'error': 'Permission denied'}, status=403)
 
         serializer = KPISerializer(kpis, data=request.data, partial=True)  # Allow partial updates
         try:
@@ -700,6 +706,8 @@ def handle_Annual_KPI(request, id=None):
                 annual_kpis = annual_kpis.filter(division_id=user.division_id).distinct()
             else:
                 pass
+            if not (user.monitoring_id or user.is_superadmin):
+                annual_kpis = annual_kpis.filter(kpi__status=True)
             serializer = AnnualKPISerializer(annual_kpis, many=True)  # Renamed variable
             return Response(serializer.data, status=200)
 
@@ -1144,22 +1152,22 @@ def plan_document_view(request, id=None):
             mutable_data['status'] = True
 
             # Fetch all SectorReminder objects related to the user’s sector
-            reminders = SectorReminder.objects.all()
+            # reminders = SectorReminder.objects.all()
             
-            # Only proceed if there are reminders
-            if reminders.exists():
-                # Set 'late' to False initially; it will only be True if any reminder is late
-                current_time = timezone.now()
+            # # Only proceed if there are reminders
+            # if reminders.exists():
+            #     # Set 'late' to False initially; it will only be True if any reminder is late
+            #     current_time = timezone.now()
 
-                # Iterate through reminders to check if any are overdue
-                for reminder in reminders:
-                    if reminder.submision_dateof_sector < current_time:
-                        # If any reminder is overdue, set late to True and break out of the loop
-                        mutable_data['late'] = True
-                        break
-            else:
-                # If there are no reminders, do nothing (mutable_data['late'] is not set)
-                pass
+            #     # Iterate through reminders to check if any are overdue
+            #     for reminder in reminders:
+            #         if reminder.submision_dateof_division < current_time:
+            #             # If any reminder is overdue, set late to True and break out of the loop
+            #             mutable_data['late'] = True
+            #             break
+            # else:
+            #     # If there are no reminders, do nothing (mutable_data['late'] is not set)
+            #     pass
         if user.division_id_id:
             mutable_data['division_id'] = user.division_id_id
             # Fetch all SectorReminder objects related to the user’s sector
@@ -1322,8 +1330,4 @@ def unit_handler(request, id=None):
             return Response({'error': 'Unit not found'}, status=404)
 
     return Response({'error': 'Method not allowed'}, status=405)
-
-
-
-
 

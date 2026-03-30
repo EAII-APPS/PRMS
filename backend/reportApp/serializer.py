@@ -25,10 +25,12 @@ class DescriptionSerializer(serializers.ModelSerializer):
 class KPIDescriptionSerializer(serializers.ModelSerializer):
     description = DescriptionSerializer(many=True, required=False)
     kpi_name = serializers.CharField(source='kpi_id.kpi.name', read_only=True)
+    kpi_year = serializers.IntegerField(source='kpi_id.year', read_only=True)
+    measure_name = serializers.CharField(source='kpi_id.measure.name', read_only=True)
 
     class Meta:
         model = KPIDescription
-        fields = ['id', 'kpi_id', 'description','kpi_name']
+        fields = ['id', 'kpi_id', 'description', 'kpi_name', 'kpi_year', 'measure_name']
 
     def create(self, validated_data):
         descriptions_data = validated_data.pop('description', [])
