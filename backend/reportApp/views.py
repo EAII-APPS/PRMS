@@ -1412,6 +1412,97 @@ def get_filter_display_name(user, sector_param, division_param, quarter, year):
     
     return org_name, org_type, quarter_name
 
+# def build_filters(request):
+#     """
+#     Build filters with priority:
+#       1. Query parameters (sector, division) – for monitoring/superadmin.
+#       2. User's own sector/division (if not monitoring/superadmin).
+#     """
+#     user = request.user
+#     year_str = request.query_params.get("year") or request.GET.get("year")
+#     quarter = request.query_params.get("quarter") or request.GET.get("quarter")
+#     sector_param = request.query_params.get("sector") or request.GET.get("sector")
+#     division_param = request.query_params.get("division") or request.GET.get("division")
+
+#     if not year_str or not year_str.isdigit():
+#         return None, "Valid Year parameter is required"
+#     year = int(year_str)
+
+#     valid_quarters = ["first", "second", "third", "fourth", "six", "nine", "year"]
+#     if quarter and quarter.lower() not in valid_quarters:
+#         return None, f"Invalid quarter. Choose from: {', '.join(valid_quarters)}"
+#     quarter = quarter.lower() if quarter else None
+
+#     from django.db.models import Q
+#     from userApp.models import Division   # needed for division lookup
+
+#     annual_kpi_filter = Q(year=year)
+#     summary_filter = Q(year=year)
+
+#     if quarter and quarter != 'year':
+#         summary_filter &= Q(quarter__iexact=quarter)
+
+#     is_monitoring_or_superadmin = getattr(user, 'is_superadmin', False) or getattr(user, 'monitoring_id', None)
+
+#     if sector_param:
+#         sector_ids = [int(s) for s in sector_param.split(',')]
+#         divisions_in_sectors = Division.objects.filter(sector_id__in=sector_ids).values_list('id', flat=True)
+
+#         summary_filter &= (
+#             Q(sector_id__in=sector_ids) |
+#             Q(division_id__in=divisions_in_sectors)
+#         )
+
+#         annual_kpi_filter &= Q(division_id__in=divisions_in_sectors)
+
+#         return {
+#             'annual_kpi_filter': annual_kpi_filter,
+#             'summary_filter': summary_filter,
+#             'year': year,
+#             'quarter': quarter,
+#             'sector_param': sector_param,
+#             'division_param': division_param
+#         }, None
+
+#     if division_param:
+#         division_ids = [int(d) for d in division_param.split(',')]
+#         summary_filter &= Q(division_id__in=division_ids)
+#         annual_kpi_filter &= Q(division_id__in=division_ids)
+#         return {
+#             'annual_kpi_filter': annual_kpi_filter,
+#             'summary_filter': summary_filter,
+#             'year': year,
+#             'quarter': quarter,
+#             'sector_param': sector_param,
+#             'division_param': division_param
+#         }, None
+
+#     if is_monitoring_or_superadmin:
+#         pass
+
+#     elif getattr(user, 'division_id', None):
+#         summary_filter &= Q(division_id=user.division_id.id)
+#         annual_kpi_filter &= Q(division_id=user.division_id.id)
+
+#     elif getattr(user, 'sector_id', None):
+#         sector_divisions = Division.objects.filter(sector_id=user.sector_id).values_list('id', flat=True)
+#         summary_filter &= (
+#             Q(sector_id=user.sector_id.id) |
+#             Q(division_id__in=sector_divisions)
+#         )
+#         annual_kpi_filter &= Q(division_id__in=sector_divisions)
+
+#     else:
+#         return None, "You do not have permission to view this data."
+
+#     return {
+#         'annual_kpi_filter': annual_kpi_filter,
+#         'summary_filter': summary_filter,
+#         'year': year,
+#         'quarter': quarter,
+#         'sector_param': sector_param,
+#         'division_param': division_param
+#     }, None 
 def build_filters(request):
     """
     Build filters with priority:
@@ -1431,16 +1522,21 @@ def build_filters(request):
     valid_quarters = ["first", "second", "third", "fourth", "six", "nine", "year"]
     if quarter and quarter.lower() not in valid_quarters:
         return None, f"Invalid quarter. Choose from: {', '.join(valid_quarters)}"
-    quarter = quarter.lower() if quarter else None
+    quarter = quarter.lower() if quarter else 'year'   # default to annual if not given
 
     from django.db.models import Q
-    from userApp.models import Division   # needed for division lookup
+    from userApp.models import Division
 
     annual_kpi_filter = Q(year=year)
     summary_filter = Q(year=year)
 
-    if quarter and quarter != 'year':
-        summary_filter &= Q(quarter__iexact=quarter)
+    # Always apply quarter filter – for 'year' this restricts to annual summaries only.
+    summary_filter &= Q(quarter__iexact=quarter)
+
+    # NOTE: If you prefer to force the user to always send a quarter parameter,
+    # replace the defaulting logic above with:
+    # if not quarter:
+    #     return None, "Quarter parameter is required"
 
     is_monitoring_or_superadmin = getattr(user, 'is_superadmin', False) or getattr(user, 'monitoring_id', None)
 
@@ -1502,8 +1598,7 @@ def build_filters(request):
         'quarter': quarter,
         'sector_param': sector_param,
         'division_param': division_param
-    }, None 
-    
+    }, None
     
 class GenerateReportDocument(APIView):
     permission_classes = [IsAuthenticated]
