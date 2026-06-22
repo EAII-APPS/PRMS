@@ -605,7 +605,11 @@ function Kpi3() {
       return;
     }
 
-    if (operationsEdit === "sum" && (firstQuarterPlanEdit + secondQuarterPlanEdit + thirdQuarterPlanEdit) !== annual_planEdit) {
+    if (operationsEdit === "sum" && (Number(firstQuarterPlanEdit) + Number(secondQuarterPlanEdit) + Number(thirdQuarterPlanEdit)) !== Number(annual_planEdit)) {
+      console.log("firstQuarterPlanEdit", Number(firstQuarterPlanEdit));
+      console.log("secondQuarterPlanEdit", Number(secondQuarterPlanEdit));
+      console.log("thirdQuarterPlanEdit", Number(thirdQuarterPlanEdit));
+      console.log("annual_planEdit", Number(annual_planEdit));
       setErrorEmptyMessage("Sum of yearly plans must be equal to the total");
       setErrorMessageWeight("");
 

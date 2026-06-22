@@ -11,7 +11,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from comApp.models import ChatRoom
 import secrets
 import string
-from django.core.mail import send_mail
 from django.conf import settings
 
 User = get_user_model()
@@ -74,24 +73,13 @@ class UserSerializer(serializers.ModelSerializer):
 
         user = User(**validated_data)
 
-        if password:
-            user.set_password(password)
-        else:
-            alphabet = string.ascii_letters + string.digits
-            password = ''.join(secrets.choice(alphabet) for _ in range(8))
-            user.set_password(password)  
+        if not password:
+            password = getattr(settings, "DEFAULT_NEW_USER_PASSWORD", "123456789")
+        user.set_password(password)
 
         user.save()
 
-        send_mail(
-            subject='You Are Successfully Registered, Grab Your login Info.',
-            message=f'''Login to the system with the following email and password. If you want to change the password first login to the system and then click on change password button and follow the instructions.
-            \nYour Email: {email}\nYour Password: {password}''',
-
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[email],
-            fail_silently=False,
-        )
+        # Email sending intentionally disabled (per request).
 
         # create chatting room at the user creation
         

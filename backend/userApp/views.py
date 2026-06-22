@@ -7,7 +7,6 @@ from django.contrib.auth import authenticate, login, logout
 from .models import *
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode 
 from django.contrib.auth.tokens import default_token_generator
@@ -204,20 +203,14 @@ def forget_password(request):
             user = User.objects.get(username=email)
             #user_profile = UserProfile.objects.get(user=user)
             if user is not None and user.is_active and user.is_deleted != True:
-                token = default_token_generator.make_token(user)
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-                password_reset_url = f"http://localhost:3000/changepassword/{uid}/{token}"
-                
-                print(password_reset_url)
-                send_mail(
-                    'Password Reset Request',
-                    f'Please click on the link to reset your password: {password_reset_url}',
-                    settings.EMAIL_HOST_USER,
-                    [email],
-                    fail_silently=False,
+                # Email sending intentionally disabled (per request).
+                default_password = getattr(settings, "DEFAULT_NEW_USER_PASSWORD", "123456789")
+                user.set_password(default_password)
+                user.save(update_fields=["password"])
+                return Response(
+                    {"message": "Password has been reset to the default password."},
+                    status=status.HTTP_200_OK,
                 )
-
-                return Response({'message': 'Password reset link sent to your email'}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'error': 'User with this email does not exist'}, status=status.HTTP_400_BAD_REQUEST)
     else:

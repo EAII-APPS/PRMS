@@ -1439,7 +1439,7 @@ def build_filters(request):
     annual_kpi_filter = Q(year=year)
     summary_filter = Q(year=year)
 
-    if quarter and quarter != 'year':
+    if quarter:
         summary_filter &= Q(quarter__iexact=quarter)
 
     is_monitoring_or_superadmin = getattr(user, 'is_superadmin', False) or getattr(user, 'monitoring_id', None)

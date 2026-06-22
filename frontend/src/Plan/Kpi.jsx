@@ -50,6 +50,33 @@ import { fetchDivisionData } from "../reduxToolKit/slices/divisionSlice";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+const extractNumericValue = (value) => {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const match = String(value).match(/(\d*\.?\d+)/);
+  if (!match) {
+    return null;
+  }
+
+  const numericValue = parseFloat(match[1]);
+  return Number.isNaN(numericValue) ? null : numericValue;
+};
+
+const calculateAverageValue = (...values) => {
+  const numericValues = values.map(extractNumericValue);
+
+  if (numericValues.some((value) => value === null)) {
+    return "";
+  }
+
+  const average =
+    numericValues.reduce((sum, value) => sum + value, 0) / numericValues.length;
+
+  return Number(average.toFixed(4)).toString();
+};
+
 function Kpi() {
   const { t } = useTranslation();
   const token = localStorage.getItem("access");
@@ -499,7 +526,26 @@ function Kpi() {
       setErrorMessageWeight("");
       return;
     }
-    if (!PerfRegex.test(annual_plan)) {
+    const annualPlanToSubmit =
+      operations === "average"
+        ? calculateAverageValue(
+            first_quarter_plan,
+            second_quarter_plan,
+            third_quarter_plan,
+            fourth_quarter_plan
+          )
+        : annual_plan;
+
+    if (operations === "average" && !annualPlanToSubmit) {
+      setErrorEmptyMessage(
+        "Please enter all quarter values to calculate the annual average"
+      );
+      setErrorMessageWeight("");
+
+      return;
+    }
+
+    if (!PerfRegex.test(annualPlanToSubmit)) {
       setErrorEmptyMessage(
         "Invalid Annual Goal , Annual Goal can't be negative!"
       );
@@ -550,7 +596,7 @@ function Kpi() {
         main_goal_id,
         initial,
         initial_unit_id: Number(initialUnitId),
-        annual: Number(annual_plan),
+        annual: Number(annualPlanToSubmit),
         annual_unit_id: Number(goalUnitId),
         year,
         pl1: Number(first_quarter_plan),
@@ -745,7 +791,25 @@ function Kpi() {
       return;
     }
 
-    if (!PerfRegex.test(annual_planEdit)) {
+    const annualPlanEditToSubmit =
+      operationsEdit === "average"
+        ? calculateAverageValue(
+            firstQuarterPlanEdit,
+            secondQuarterPlanEdit,
+            thirdQuarterPlanEdit,
+            fourthQuarterPlanEdit
+          )
+        : annual_planEdit;
+
+    if (operationsEdit === "average" && !annualPlanEditToSubmit) {
+      setErrorEmptyMessage(
+        "Please enter all quarter values to calculate the annual average"
+      );
+      setErrorMessageWeight("");
+      return;
+    }
+
+    if (!PerfRegex.test(annualPlanEditToSubmit)) {
       setErrorEmptyMessage("Invalid Annual Goal, Annual Goal can't be negative!");
       setErrorMessageWeight("");
       return;
@@ -782,7 +846,7 @@ function Kpi() {
           kpi: kpiEdit,
           initial: initialEdit,
           initial_unit_id: initialUnitEdit,
-          annual: annual_planEdit,
+          annual: annualPlanEditToSubmit,
           annual_unit_id: annualPlanUnitEdit,
           year: yearEdit,
           pl1: Number(firstQuarterPlanEdit),
@@ -1150,6 +1214,48 @@ function Kpi() {
       }
     }
   }, [measure, measureData]);
+
+  useEffect(() => {
+    if (operations !== "average") {
+      return;
+    }
+
+    setAnnual_plan(
+      calculateAverageValue(
+        first_quarter_plan,
+        second_quarter_plan,
+        third_quarter_plan,
+        fourth_quarter_plan
+      )
+    );
+  }, [
+    operations,
+    first_quarter_plan,
+    second_quarter_plan,
+    third_quarter_plan,
+    fourth_quarter_plan,
+  ]);
+
+  useEffect(() => {
+    if (operationsEdit !== "average") {
+      return;
+    }
+
+    setAnnual_planEdit(
+      calculateAverageValue(
+        firstQuarterPlanEdit,
+        secondQuarterPlanEdit,
+        thirdQuarterPlanEdit,
+        fourthQuarterPlanEdit
+      )
+    );
+  }, [
+    operationsEdit,
+    firstQuarterPlanEdit,
+    secondQuarterPlanEdit,
+    thirdQuarterPlanEdit,
+    fourthQuarterPlanEdit,
+  ]);
 
 
 
