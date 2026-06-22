@@ -298,15 +298,15 @@ function Kpi3() {
     }
     if (
       operations === "sum" &&
-      Number(first_quarter_plan) + 
-      Number(second_quarter_plan) + 
+      Number(first_quarter_plan) +
+      Number(second_quarter_plan) +
       Number(third_quarter_plan) !== Number(annual_plan)
     ) {
       setErrorEmptyMessage("Sum of yearly plans must be equal to the total");
       setErrorMessageWeight("");
       return;
     }
-    
+
 
     if (!PerfRegex.test(!annual_plan || goalUnitId)) {
       setErrorEmptyMessage(
@@ -503,7 +503,7 @@ function Kpi3() {
     const division = divisionData.find(
       div => String(div.id) === String(items.division_id)
     );
-    
+
     if (division) {
       setsectorId(division.sector); // Set sector_id from divisiondata
     } else {
@@ -982,19 +982,19 @@ function Kpi3() {
       }
     }
   }, [uniteData, measure]);
-    useEffect(() => {
-      const avgKeywords = ["average", "Average", "መቶኛ", "በመቶኛ", "በመቶ"];
-    
-      if (measure && measureData.length > 0) {
-        const selectedMeasure = measureData.find((item) => item.id === measure);
-    
-        if (selectedMeasure && avgKeywords.includes(selectedMeasure.name.trim())) {
-          setOperation("average");
-        } else {
-          setOperation("sum");
-        }
+  useEffect(() => {
+    const avgKeywords = ["average", "Average", "መቶኛ", "በመቶኛ", "በመቶ"];
+
+    if (measure && measureData.length > 0) {
+      const selectedMeasure = measureData.find((item) => item.id === measure);
+
+      if (selectedMeasure && avgKeywords.includes(selectedMeasure.name.trim())) {
+        setOperation("average");
+      } else {
+        setOperation("sum");
       }
-    }, [measure, measureData]);
+    }
+  }, [measure, measureData]);
   // Function to handle next page button click
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -1017,16 +1017,16 @@ function Kpi3() {
     ? transformedData.slice(indexOfFirstItem, indexOfLastItem)
     : [];
 
-    const filteredData = currentPageData
+  const filteredData = currentPageData
     ?.map(item => {
       // Filter kpis that match the search term
       const matchingKpis = item.kpi?.filter(kpi =>
         kpi.kpi_name.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      
+
       // Check if any KPI matches
       const mainGoalMatches = item.maingoal_name.toLowerCase().includes(searchTerm.toLowerCase());
-  
+
       // If the main goal matches or there are matching KPIs, return the item
       if (mainGoalMatches || matchingKpis.length > 0) {
         return {
@@ -1034,11 +1034,11 @@ function Kpi3() {
           kpi: matchingKpis, // Keep only matching KPIs
         };
       }
-  
+
       return null; // If no match, return null
     })
     .filter(Boolean); // Remove any null entries
-  
+
   const [openKpi, setOPenKpi] = useState(-1);
   const handleOPenKpi = (index) => {
     setTimeout(() => setOPenKpi(openKpi === index ? -1 : index), 50);
@@ -1057,7 +1057,7 @@ function Kpi3() {
               <div className="flex items-center justify-between mt-5 gap-5">
                 <div>
                   <div className="w-full">
-                  <Input
+                    <Input
                       color="blue"
                       size="sm"
                       label={t("MAIN.TABLE.SEARCH")}
@@ -2006,7 +2006,7 @@ function Kpi3() {
                   <h1 className="ml-2">{number_part - firstQnum - thirdQnum - fourthQnum}</h1>
                 ) : null}
               </div>
-              
+
               <div className="w-11/12  justify-self-center">
                 <Input
                   type="text"
@@ -3067,7 +3067,7 @@ function Kpi3() {
             <div className="w-11/12 flex items-center gap-5  justify-self-center">
               <Button className="rounded-full text-sm font-bold cursor-default w-2/6 bg-blue-700">
 
-{secondQuarterGoal}
+                {secondQuarterGoal}
                 {(() => {
                   const unitSymbol = uniteData.find((unit) => unit.id === secondQuarterUnitId)?.symbol;
                   return unitSymbol ? `  ${unitSymbol}` : ""; // Show brackets only if unitSymbol exists
@@ -3121,7 +3121,7 @@ function Kpi3() {
             <div className="w-11/12 flex items-center gap-5  justify-self-center">
               <Button className="rounded-full text-sm font-bold cursor-default w-2/6 bg-blue-700">
 
-                  {thirdQuarterGoal}
+                {thirdQuarterGoal}
                 {(() => {
                   const unitSymbol = uniteData.find((unit) => unit.id === thirdQuarterUnitId)?.symbol;
                   return unitSymbol ? ` ${unitSymbol}` : ""; // Show brackets only if unitSymbol exists

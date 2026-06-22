@@ -529,11 +529,11 @@ function Kpi() {
     const annualPlanToSubmit =
       operations === "average"
         ? calculateAverageValue(
-            first_quarter_plan,
-            second_quarter_plan,
-            third_quarter_plan,
-            fourth_quarter_plan
-          )
+          first_quarter_plan,
+          second_quarter_plan,
+          third_quarter_plan,
+          fourth_quarter_plan
+        )
         : annual_plan;
 
     if (operations === "average" && !annualPlanToSubmit) {
@@ -794,11 +794,11 @@ function Kpi() {
     const annualPlanEditToSubmit =
       operationsEdit === "average"
         ? calculateAverageValue(
-            firstQuarterPlanEdit,
-            secondQuarterPlanEdit,
-            thirdQuarterPlanEdit,
-            fourthQuarterPlanEdit
-          )
+          firstQuarterPlanEdit,
+          secondQuarterPlanEdit,
+          thirdQuarterPlanEdit,
+          fourthQuarterPlanEdit
+        )
         : annual_planEdit;
 
     if (operationsEdit === "average" && !annualPlanEditToSubmit) {
@@ -1893,7 +1893,13 @@ function Kpi() {
                   id="annualplan"
                   label={t("MAIN.INPUTFIELD.ANNUAL")}
                   size="lg"
+                  value={annual_plan}
+                  readOnly={operations === "average"}
+                  className={operations === "average" ? "bg-gray-100" : ""}
                   onChange={(e) => {
+                    if (operations === "average") {
+                      return;
+                    }
                     setAnnual_plan(e.target.value);
                     setNumber_part(handleNumExtraction(e.target.value));
                     setErrorEmptyMessage("");
@@ -2274,7 +2280,12 @@ function Kpi() {
                   label={t("MAIN.INPUTFIELD.ANNUAL")}
                   size="lg"
                   value={annual_plan}
+                  readOnly={operations === "average"}
+                  className={operations === "average" ? "bg-gray-100" : ""}
                   onChange={(e) => {
+                    if (operations === "average") {
+                      return;
+                    }
                     setAnnual_plan(e.target.value);
                     setNumber_part(handleNumExtraction(e.target.value));
                     setErrorEmptyMessage("");
@@ -2709,7 +2720,12 @@ function Kpi() {
                   label={t("MAIN.INPUTFIELD.ANNUAL")}
                   value={annual_planEdit}
                   size="lg"
+                  readOnly={operationsEdit === "average"}
+                  className={operationsEdit === "average" ? "bg-gray-100" : ""}
                   onChange={(e) => {
+                    if (operationsEdit === "average") {
+                      return;
+                    }
                     setAnnual_planEdit(e.target.value);
                     setNumber_part(handleNumExtraction(e.target.value));
                     setErrorEmptyMessage("");
