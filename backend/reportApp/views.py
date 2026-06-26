@@ -39,6 +39,7 @@ from planApp.unit_calculator import convert_quarterly_plans_to_base,convert_quar
 from collections import defaultdict
 from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls
+import json
 
 def delete_old_documents():
     documents_dir = os.path.join(settings.MEDIA_ROOT, 'documents')
@@ -252,6 +253,42 @@ class KPIDescriptionListCreate(generics.ListCreateAPIView):
     serializer_class = KPIDescriptionSerializer
     permission_classes = [IsAuthenticated]
 
+    def _parse_description_payload(self, request):
+        raw_payload = request.data.get('description_payload')
+        if raw_payload in (None, ''):
+            return None
+
+        if isinstance(raw_payload, str):
+            try:
+                raw_payload = json.loads(raw_payload)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"description_payload must be valid JSON: {e.msg}") from e
+
+        if not isinstance(raw_payload, list):
+            raise ValueError('description_payload must be a list')
+
+        files_map = {}
+        for key in request.FILES.keys():
+            match = re.match(r'^description_files\[(\d+)\]$', key)
+            if match:
+                files_map[int(match.group(1))] = request.FILES.getlist(key)
+
+        return raw_payload, files_map
+
+    def _build_serializer(self, *args, **kwargs):
+        payload = self._parse_description_payload(self.request)
+        context = kwargs.pop('context', {})
+        if payload is not None:
+            description_payload, files_map = payload
+            context = {**context, 'description_files_map': files_map}
+            data = kwargs.get('data')
+            if data is not None:
+                mutable_data = dict(data.items()) if hasattr(data, "items") else dict(data)
+                mutable_data['description_payload'] = description_payload
+                kwargs['data'] = mutable_data
+        kwargs['context'] = context
+        return self.get_serializer(*args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         division_id = request.user.division_id
         sector_id = request.user.sector_id
@@ -319,12 +356,14 @@ class KPIDescriptionListCreate(generics.ListCreateAPIView):
                 return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
         try:
+            serializer = self._build_serializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -336,6 +375,42 @@ class KPIDescriptionRetrieveUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
 
     def get_kpidescription(self, pk):
         return get_object_or_404(KPIDescription, pk=pk)
+
+    def _parse_description_payload(self, request):
+        raw_payload = request.data.get('description_payload')
+        if raw_payload in (None, ''):
+            return None
+
+        if isinstance(raw_payload, str):
+            try:
+                raw_payload = json.loads(raw_payload)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"description_payload must be valid JSON: {e.msg}") from e
+
+        if not isinstance(raw_payload, list):
+            raise ValueError('description_payload must be a list')
+
+        files_map = {}
+        for key in request.FILES.keys():
+            match = re.match(r'^description_files\[(\d+)\]$', key)
+            if match:
+                files_map[int(match.group(1))] = request.FILES.getlist(key)
+
+        return raw_payload, files_map
+
+    def _build_serializer(self, *args, **kwargs):
+        payload = self._parse_description_payload(self.request)
+        context = kwargs.pop('context', {})
+        if payload is not None:
+            description_payload, files_map = payload
+            context = {**context, 'description_files_map': files_map}
+            data = kwargs.get('data')
+            if data is not None:
+                mutable_data = dict(data.items()) if hasattr(data, "items") else dict(data)
+                mutable_data['description_payload'] = description_payload
+                kwargs['data'] = mutable_data
+        kwargs['context'] = context
+        return self.get_serializer(*args, **kwargs)
     
     def delete(self, request, pk):
         try:
@@ -354,12 +429,14 @@ class KPIDescriptionRetrieveUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
     
     def put(self, request, pk, *args, **kwargs):
         instance = self.get_kpidescription(pk)
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
         try:
+            serializer = self._build_serializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -391,7 +468,7 @@ class MeasureListCreate(generics.ListCreateAPIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self._build_serializer(data=request.data)
         try:
             if serializer.is_valid():
                 serializer.save()

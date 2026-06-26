@@ -10,11 +10,11 @@ class KPIPhotosSerializer(serializers.ModelSerializer):
         model = KPIPhotos
         fields = ['id', 'photos']
         extra_kwargs = {
-            'photos': {'required': False} 
+            'photos': {'required': False}
         }
 
 class DescriptionSerializer(serializers.ModelSerializer):
-    description_photo = KPIPhotosSerializer(many=True, required=False)
+    description_photo = KPIPhotosSerializer(many=True, read_only=True)
 
     class Meta:
         model = Description
@@ -23,53 +23,99 @@ class DescriptionSerializer(serializers.ModelSerializer):
    
 
 class KPIDescriptionSerializer(serializers.ModelSerializer):
-    description = DescriptionSerializer(many=True, required=False)
+    description = DescriptionSerializer(many=True, read_only=True)
+    description_payload = serializers.ListField(
+        child=serializers.DictField(),
+        write_only=True,
+        required=False,
+    )
     kpi_name = serializers.CharField(source='kpi_id.kpi.name', read_only=True)
     kpi_year = serializers.IntegerField(source='kpi_id.year', read_only=True)
     measure_name = serializers.CharField(source='kpi_id.measure.name', read_only=True)
 
     class Meta:
         model = KPIDescription
-        fields = ['id', 'kpi_id', 'description', 'kpi_name', 'kpi_year', 'measure_name']
+        fields = [
+            'id',
+            'kpi_id',
+            'description',
+            'description_payload',
+            'kpi_name',
+            'kpi_year',
+            'measure_name',
+        ]
+
+    def _sync_descriptions(self, kpidescription, descriptions_data, files_map):
+        incoming_description_ids = set()
+
+        for index, description_data in enumerate(descriptions_data):
+            description_id = description_data.get('id')
+            if description_id not in (None, ''):
+                try:
+                    description_id = int(description_id)
+                except (TypeError, ValueError):
+                    description_id = None
+            description_text = description_data.get('description', '')
+            keep_photo_ids = set()
+            for photo_id in description_data.get('existing_photo_ids', []):
+                if photo_id in (None, ''):
+                    continue
+                try:
+                    keep_photo_ids.add(int(photo_id))
+                except (TypeError, ValueError):
+                    continue
+
+            description_instance = None
+            if description_id:
+                description_instance = Description.objects.filter(
+                    pk=description_id,
+                    kpid_id=kpidescription,
+                ).first()
+
+            if description_instance:
+                description_instance.description = description_text
+                description_instance.save()
+            else:
+                description_instance = Description.objects.create(
+                    kpid_id=kpidescription,
+                    description=description_text,
+                )
+
+            incoming_description_ids.add(description_instance.id)
+
+            if description_id:
+                existing_photos = KPIPhotos.objects.filter(des_id=description_instance)
+                if keep_photo_ids:
+                    existing_photos.exclude(id__in=keep_photo_ids).delete()
+                else:
+                    existing_photos.delete()
+
+            for uploaded_file in files_map.get(index, []):
+                KPIPhotos.objects.create(
+                    des_id=description_instance,
+                    photos=uploaded_file,
+                )
+
+        kpidescription.description.exclude(id__in=incoming_description_ids).delete()
 
     def create(self, validated_data):
-        descriptions_data = validated_data.pop('description', [])
+        descriptions_data = validated_data.pop('description_payload', [])
+        files_map = self.context.get('description_files_map', {})
         kpidescription = KPIDescription.objects.create(**validated_data)
-        for description_data in descriptions_data:
-            photos_data = description_data.pop('description_photo', [])
-            description = Description.objects.create(kpid_id=kpidescription, **description_data)
-            for photo_data in photos_data:
-                KPIPhotos.objects.create(des_id=description, **photo_data)
+        if descriptions_data:
+            self._sync_descriptions(kpidescription, descriptions_data, files_map)
         return kpidescription
 
-
-
     def update(self, instance, validated_data):
-        
-        descriptions_data = validated_data.pop('description', None)
-       
+        descriptions_data = validated_data.pop('description_payload', None)
+        files_map = self.context.get('description_files_map', {})
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-
         if descriptions_data is not None:
-            
-            instance.description.all().delete()
-            for description_data in descriptions_data:
-                photos_data = description_data.pop('description_photo', None)
-                description = Description.objects.create(kpid_id=instance, **description_data)
-
-                
-                if photos_data:
-                    for photo in photos_data:
-                        KPIPhotos.objects.create(des_id=description, **photo)
-
-                
-
-              
-
-                
+            self._sync_descriptions(instance, descriptions_data, files_map)
 
         return instance
 

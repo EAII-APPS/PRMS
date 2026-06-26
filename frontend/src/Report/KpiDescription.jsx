@@ -139,43 +139,22 @@ function KpiDescription() {
     e.preventDefault();
 
     const formData = new FormData();
-
     formData.append("kpi_id", kpi_id);
-
-    // description.forEach((desc) => {
-    //   formData.append("description", desc.description);
-    //   if (desc.file) {
-    //     formData.append("description_photo", desc.file);
-    //   }
-    // });
-
-    formData.append("kpi_id", kpi_id);
+    formData.append(
+      "description_payload",
+      JSON.stringify(
+        description.map((desc) => ({
+          description: desc.description,
+          existing_photo_ids: [],
+        }))
+      )
+    );
 
     description.forEach((desc, index) => {
-      formData.append(`description[${index}]description`, desc.description);
-      desc.file.forEach((file, fileIndex) => {
-        formData.append(
-          `description[${index}]description_photo[${fileIndex}]photos`,
-          file
-        );
+      (desc.file || []).forEach((file) => {
+        formData.append(`description_files[${index}]`, file);
       });
     });
-
-    // description.forEach((desc, index) => {
-    //   for (const [key, value] of Object.entries(desc)) {
-    //     if (key === "description_photos") {
-    //       value.forEach((file, fileIndex) => {
-    //         // Construct the key as per your requirement
-    //         formData.append(
-    //           `description[${index}]description_photo[${fileIndex}]photos`,
-    //           file
-    //         );
-    //       });
-    //     } else {
-    //       formData.append(`description[${index}][${key}]`, value);
-    //     }
-    //   }
-    // });
 
     try {
       const response = await axiosInistance.post(
@@ -191,7 +170,7 @@ function KpiDescription() {
       dispatch(fetchKpiDescriptionData());
       setOpen(false);
       setRole("");
-      setDescription("");
+      setDescription([{ description: "", file: [] }]);
 
       toast.success(`KPI Description Added successfully`, {
         autoClose: 2000,
@@ -221,81 +200,93 @@ function KpiDescription() {
   //   setEditFile();
   //   setSelectedEditId(items.id);
   // };
-const [editName,setEditName] = useState("");
+  const [editName, setEditName] = useState("");
   const handleOpenEdit = (items) => {
-    setOpenEdit(!openEdit);
+    setOpenEdit(true);
     setEditName(items.kpi_name);
     // Populate the form fields with current data
     setEditKpi_id(items.kpi_id);
-    setEditDescription(items.description.map((desc) => ({
-      ...desc,
-      file: desc.description_photo || [], // Handle the photos for each description
-    })));
+    setEditDescription(
+      (items.description || []).map((desc) => ({
+        id: desc.id,
+        description: desc.description || "",
+        description_photo: Array.isArray(desc.description_photo)
+          ? desc.description_photo
+          : [],
+        file: [],
+      }))
+    );
     setSelectedEditId(items.id);
-    console.log(items)
+  };
+
+  const handleCloseEdit = () => {
+    setOpenEdit(false);
+  };
+
+  const handleRemoveExistingPhoto = (descriptionIndex, photoId) => {
+    setEditDescription((prevDescriptions) =>
+      prevDescriptions.map((desc, index) =>
+        index === descriptionIndex
+          ? {
+              ...desc,
+              description_photo: (desc.description_photo || []).filter(
+                (photo) => photo.id !== photoId
+              ),
+            }
+          : desc
+      )
+    );
+  };
+
+  const handleEditPhotoChange = (index, e) => {
+    const incomingFiles = Array.from(e.target.files || []);
+    setEditDescription((prevDescriptions) =>
+      prevDescriptions.map((desc, i) =>
+        i === index
+          ? {
+              ...desc,
+              file: [...(desc.file || []), ...incomingFiles],
+            }
+          : desc
+      )
+    );
   };
 
 
   const handleEditDescription = async (e) => {
-
-
     e.preventDefault();
 
     const formData = new FormData();
     formData.append("kpi_id", editkpi_id);
+    formData.append(
+      "description_payload",
+      JSON.stringify(
+        editDescription.map((desc) => ({
+          id: desc.id,
+          description: desc.description,
+          existing_photo_ids: (desc.description_photo || []).map((photo) => photo.id),
+        }))
+      )
+    );
 
-    // Append each description with associated text and photos
     editDescription.forEach((desc, index) => {
-      // Append the description text
-      if (desc.description) {
-        formData.append(`description[${index}]description`, desc.description);
-      }
-
-      // Append the description ID if it exists
-      if (desc.id) {
-        formData.append(`description[${index}]id`, desc.id);
-      }
-
-      desc.file.forEach((file, fileIndex) => {
-        formData.append(
-          `description[${index}]description_photo[${fileIndex}]photos`,
-          file.photos
-        );
-        if (file.id) {
-          formData.append(
-            `description[${index}]description_photo[${fileIndex}]id`,
-            file.id
-          );
-
-        }
-
+      (desc.file || []).forEach((file) => {
+        formData.append(`description_files[${index}]`, file);
       });
-
-
-
-
     });
-
-
-
-
-
 
     const token = localStorage.getItem("access");
 
     try {
-      const response = await axiosInistance.put(
+      await axiosInistance.put(
         `/reportApp/kpidescription/${selectedEditId}/`,
-
         formData,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      // setShowModalAddDivision(false);
       dispatch(fetchKpiDescriptionData());
       setOpenEdit(false);
 
@@ -630,12 +621,11 @@ const [editName,setEditName] = useState("");
                       onChange={(e) => handleDescriptionChange(index, e)}
                     ></Textarea>
                   </div>
-                  <div class="space-y-8 font-[sans-serif] w-11/12 justify-self-center">
-                    <input
+                  <div className="space-y-8 font-[sans-serif] w-11/12 justify-self-center">
+                      <input
                       type="file"
                       multiple
                       className="w-full text-black text-base bg-gray-100 file:cursor-pointer cursor-pointer file:border-0 file:py-2.5 file:px-4 file:mr-4 file:bg-light-blue-700 file:hover:bg-light-blue-700 file:text-white rounded-md"
-                      value={FormData.file}
                       onChange={(e) => handlePhotoChange(index, e)}
                     // onChange={(e) => {
                     //   setFile(Array.from(e.target.files));
@@ -649,6 +639,7 @@ const [editName,setEditName] = useState("");
               <Button
                 variant="text"
                 className="flex items-center gap-1 hover:bg-blue-700 bg-blue-700 text-white focus:bg-blue-700 normal-case"
+                type="button"
                 onClick={addAnotherDescription}
               >
                 <FontAwesomeIcon icon={faPlus} />
@@ -660,6 +651,7 @@ const [editName,setEditName] = useState("");
               <Button
                 variant="text"
                 color="red"
+                type="button"
                 onClick={handleOpen}
                 className="normal-case"
               >
@@ -669,7 +661,7 @@ const [editName,setEditName] = useState("");
                 variant="text"
                 size="sm"
                 className="flex items-center gap-1 hover:bg-blue-700 bg-blue-700 text-white focus:bg-blue-700 normal-case"
-                onClick={handleAddDescription}
+                type="submit"
               >
                 Add
               </Button>
@@ -699,10 +691,10 @@ const [editName,setEditName] = useState("");
         </DialogFooter>
       </Dialog>
       {/* edit */}
-      <Dialog open={openEdit} handler={handleOpenEdit} size="lg">
+      <Dialog open={openEdit} handler={handleCloseEdit} size="lg">
         <DialogHeader className="flex justify-between">
           <div className="text-xl ml-5">Update Kpi Description</div>
-          <div className="cursor-pointer mr-5" onClick={handleOpenEdit}>
+          <div className="cursor-pointer mr-5" onClick={handleCloseEdit}>
             X
           </div>
         </DialogHeader>
@@ -718,7 +710,7 @@ const [editName,setEditName] = useState("");
                 label="KPI"
                 className="w-full p-2"
                 value={editkpi_id} // Bound to the state
-                onChange={(e) => setEditKpi_id(e)} // Update the state when changed
+                onChange={(e) => setEditKpi_id(e.target.value)} // Update the state when changed
               >
                 {kpiData &&
                   kpiData.map((items) => (
@@ -765,12 +757,21 @@ const [editName,setEditName] = useState("");
                   {desc.description_photo && desc.description_photo.length > 0 && (
                     <div className="flex flex-wrap gap-4 mb-4">
                       {desc.description_photo.map((photo, fileIndex) => (
-                        <div key={fileIndex} className="flex flex-col items-center">
-                          <img
-                            src={photo.photos} // Assuming `photos` contains the URL or path to the image
-                            alt={`Photo ${fileIndex + 1}`}
-                            className="h-24 w-24 object-cover rounded"
-                          />
+                        <div key={photo.id ?? fileIndex} className="flex flex-col items-center gap-2">
+                          <div className="relative">
+                            <img
+                              src={photo.photos}
+                              alt={`Photo ${fileIndex + 1}`}
+                              className="h-24 w-24 object-cover rounded"
+                            />
+                            <button
+                              type="button"
+                              className="absolute -top-2 -right-2 rounded-full bg-red-600 text-white h-6 w-6 flex items-center justify-center"
+                              onClick={() => handleRemoveExistingPhoto(index, photo.id)}
+                            >
+                              <FontAwesomeIcon icon={faXmark} className="h-3 w-3" />
+                            </button>
+                          </div>
                           <span className="text-sm text-gray-600 mt-2">{`Photo ${fileIndex + 1}`}</span>
                         </div>
                       ))}
@@ -782,13 +783,7 @@ const [editName,setEditName] = useState("");
                     type="file"
                     className="w-full text-black text-base bg-gray-100 file:cursor-pointer cursor-pointer file:border-0 file:py-2.5 file:px-4 file:mr-4 file:bg-light-blue-700 file:hover:bg-light-blue-700 file:text-white rounded-md"
                     multiple // Allow multiple file uploads
-                    onChange={(e) =>
-                      setEditDescription((prevDescriptions) =>
-                        prevDescriptions.map((d, i) =>
-                          i === index ? { ...d, file: Array.from(e.target.files) } : d
-                        )
-                      )
-                    } // Update files in the specific description's state
+                    onChange={(e) => handleEditPhotoChange(index, e)}
                   />
                 </div>
               </div>
@@ -799,7 +794,8 @@ const [editName,setEditName] = useState("");
               <Button
                 variant="text"
                 color="red"
-                onClick={handleOpenEdit} // Close the edit dialog
+                type="button"
+                onClick={handleCloseEdit} // Close the edit dialog
                 className="normal-case"
               >
                 <span>Cancel</span>
