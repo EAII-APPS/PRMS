@@ -22,6 +22,7 @@ import {
   faXmark,
   faPenToSquare,
   faTrash,
+  faKey,
 } from "@fortawesome/free-solid-svg-icons";
 import "./Scrollbar.css";
 import {
@@ -108,6 +109,52 @@ function Admin() {
   };
 
   const [selectedId, setSelectedId] = useState(null);
+
+  const [passwordTarget, setPasswordTarget] = useState(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
+  const closePasswordDialog = () => {
+    setPasswordTarget(null);
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setPasswordError("");
+  };
+
+  const handleSetUserPassword = async (event) => {
+    event.preventDefault();
+
+    if (!newPassword || !confirmNewPassword) {
+      setPasswordError("Enter and confirm the new password.");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError("The passwords do not match.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("access");
+      await axiosInstance.post(
+        `/userApp/users/${passwordTarget.id}/change-password/`,
+        { new_password: newPassword },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      closePasswordDialog();
+      toast.success("User password updated successfully", {
+        autoClose: 2000,
+        hideProgressBar: true,
+      });
+    } catch (error) {
+      const validationErrors = error.response?.data?.new_password;
+      setPasswordError(
+        Array.isArray(validationErrors)
+          ? validationErrors.join(" ")
+          : error.response?.data?.error || "Unable to update the password."
+      );
+    }
+  };
 
   const handleDelete = async () => {
     dispatch(deleteSelectedUser(selectedId));
@@ -627,11 +674,10 @@ function Admin() {
                     variant="text"
                     size="sm"
                     onClick={handleOpen}
-                    className={`flex items-center gap-1 hover:bg-blue-700 bg-blue-700 text-white focus:bg-blue-700 normal-case ${
-                      roleData && sectorData && monitoringData && divisionData
+                    className={`flex items-center gap-1 hover:bg-blue-700 bg-blue-700 text-white focus:bg-blue-700 normal-case ${roleData && sectorData && monitoringData && divisionData
                         ? ""
                         : "cursor-wait"
-                    }`}
+                      }`}
                   >
                     <FontAwesomeIcon icon={faPlus} />
                     {t("MAIN.SIDEBAR.UMS.USER.ADDBUTTON")}
@@ -706,13 +752,13 @@ function Admin() {
                               {items.role_name}
                             </td>
                             <td className="p-2  text-left text-sm font-normal text-blue-gray-900 cursor-pointer">
-                            {items.monitoring_id
-                              ? monitoringData?.find((data) => data.id === items.monitoring_id)?.name || "No permission"
-                              : items.sector_id
-                              ? sectorData?.find((data) => data.id === items.sector_id)?.name || "No Permission"
-                              : items.division_id
-                              ? divisionData?.find((data) => data.id === items.division_id)?.name || "No Permission"
-                              : ""}
+                              {items.monitoring_id
+                                ? monitoringData?.find((data) => data.id === items.monitoring_id)?.name || "No permission"
+                                : items.sector_id
+                                  ? sectorData?.find((data) => data.id === items.sector_id)?.name || "No Permission"
+                                  : items.division_id
+                                    ? divisionData?.find((data) => data.id === items.division_id)?.name || "No Permission"
+                                    : ""}
                             </td>
 
                             <td className="p-2 text-left text-sm font-normal text-blue-gray-900">
@@ -738,6 +784,18 @@ function Admin() {
 
                             <td className="p-2  text-left text-sm text-blue-gray-900 font-normal">
                               <div className="flex items-center justify-center gap-2">
+                                {authInfo.user.is_superadmin && (
+                                  <FontAwesomeIcon
+                                    color="blue"
+                                    title="Change password"
+                                    onClick={() => {
+                                      setPasswordTarget(items);
+                                      setPasswordError("");
+                                    }}
+                                    icon={faKey}
+                                    className="cursor-pointer"
+                                  />
+                                )}
                                 <FontAwesomeIcon
                                   color="orange"
                                   onClick={() => handleOpenEdit(items)}
@@ -820,6 +878,54 @@ function Admin() {
       ) : (
         <div></div>
       )}
+
+      {/* Change user password */}
+      <Dialog
+        open={Boolean(passwordTarget)}
+        handler={closePasswordDialog}
+        size="sm"
+      >
+        <DialogHeader>Change user password</DialogHeader>
+        <DialogBody>
+          <form
+            onSubmit={handleSetUserPassword}
+            className="grid gap-4"
+          >
+            <p>
+              Set a new password for {passwordTarget?.first_name} {passwordTarget?.last_name}.
+            </p>
+            <Input
+              type="password"
+              label="New password"
+              value={newPassword}
+              onChange={(event) => {
+                setNewPassword(event.target.value);
+                setPasswordError("");
+              }}
+            />
+            <Input
+              type="password"
+              label="Confirm new password"
+              value={confirmNewPassword}
+              onChange={(event) => {
+                setConfirmNewPassword(event.target.value);
+                setPasswordError("");
+              }}
+            />
+            {passwordError && (
+              <p className="text-sm text-red-700">{passwordError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="text" type="button" onClick={closePasswordDialog}>
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-blue-700">
+                Update password
+              </Button>
+            </div>
+          </form>
+        </DialogBody>
+      </Dialog>
 
       {/* delete */}
       <Dialog open={openDelete} handler={handleOpenDelete}>
@@ -1018,10 +1124,10 @@ function Admin() {
                   monitoringCheckedEdit
                     ? monitoringIdEdit
                     : sectorCheckedEdit
-                    ? sectorIdEdit
-                    : divisionCheckedEdit
-                    ? divisionIdEdit
-                    : ""
+                      ? sectorIdEdit
+                      : divisionCheckedEdit
+                        ? divisionIdEdit
+                        : ""
                 }
                 onChange={(e) => {
                   if (monitoringCheckedEdit) {
@@ -1045,10 +1151,10 @@ function Admin() {
                 {(monitoringCheckedEdit
                   ? monitoringData
                   : sectorCheckedEdit
-                  ? sectorData
-                  : divisionCheckedEdit
-                  ? divisionData
-                  : []
+                    ? sectorData
+                    : divisionCheckedEdit
+                      ? divisionData
+                      : []
                 )?.map((items) => (
                   <Option
                     key={items.id}
@@ -1128,7 +1234,7 @@ function Admin() {
               className="grid gap-5 items-center w-11/12  mx-auto"
             >
               {authInfo.user.userPermissions.includes("createAdmin") &&
-              !authInfo.user.is_superadmin ? (
+                !authInfo.user.is_superadmin ? (
                 <div className="w-full justify-self-center">
                   <Checkbox
                     color="blue"

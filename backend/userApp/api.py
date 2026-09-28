@@ -6,6 +6,8 @@ from django.contrib.auth.models import Group
 from rest_framework.decorators import action
 from .models import *
 from roleApp.models import *
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 import re
 from collections import defaultdict
 from django.db.models import F
@@ -29,7 +31,9 @@ class UserViewSet(viewsets.ModelViewSet):
         print("User sector ID:", user_sector_id)  # Updated print statement for clarity
         # if self.request.user.id:
         #     return User.objects.filter(id=self.request.user.id)
-        if user_sector_id:
+        if self.request.user.is_superadmin or self.request.user.is_superuser:
+            return User.objects.filter(is_deleted=False)
+        elif user_sector_id:
             
             admin_division_ids = Division.objects.filter(sector_id=user_sector_id.id).distinct().values_list('id', flat=True)
             
@@ -43,10 +47,36 @@ class UserViewSet(viewsets.ModelViewSet):
             return User.objects.filter(is_deleted=False, monitoring_id=user_monitoring_id)
         elif user_division_id:   
             return User.objects.filter(is_deleted=False, division_id=user_division_id)
-        elif self.request.user.is_superuser:
-            return User.objects.filter(is_deleted=False)
         else:
             return User.objects.none()
+
+    @action(detail=True, methods=['post'], url_path='change-password')
+    def change_password(self, request, pk=None):
+        if not request.user.is_superadmin:
+            return Response(
+                {"error": "Only superadmins can change user passwords."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        user = self.get_object()
+        new_password = request.data.get('new_password')
+        if not isinstance(new_password, str) or not new_password:
+            return Response(
+                {"new_password": ["A new password is required."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            validate_password(new_password, user)
+        except ValidationError as error:
+            return Response(
+                {"new_password": error.messages},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(new_password)
+        user.save(update_fields=['password'])
+        return Response({"message": "Password updated successfully."})
         
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])

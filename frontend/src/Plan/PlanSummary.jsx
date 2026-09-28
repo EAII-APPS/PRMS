@@ -381,7 +381,7 @@ function Summary() {
           year: data.year,
           quarter: data.quarter,
           Introduction: data.plan_narrations[0].description,
-          multiple_files: data.plan_narrations[0].Plan_photos, // Handle file loading if necessary
+          multiple_files: [],
         });
       }
 
@@ -591,21 +591,9 @@ function Summary() {
 
   const UpdateApproval = async (id) => {
     try {
-      // Fetch the existing data for the specified id  
-      // Extract the data from table rows that has been fetched already instead of fethcing it again
-      const data = tableRows.find(row => row.id === id);
-
-      // Toggle the boolean value (assuming the field is named 'status')
-      data.status = !data.status;
-
-      // Prepare formData if needed, otherwise use data directly
-      // const formData = new FormData();
-      // Object.keys(data).forEach(key => formData.append(key, data[key]));
-
-      // Submit the updated data
-      const putResponse = await axiosInstance.put(
+      await axiosInstance.put(
         `planApp/plan-document/${id}/`,
-        data,
+        { status: true },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -621,21 +609,9 @@ function Summary() {
 
   const Submit = async (id) => {
     try {
-      // Fetch the existing data for the specified id
-      // Extract the data
-      const data = tableRows.find(row => row.id === id);
-
-      // Toggle the boolean value (assuming the field is named 'status')
-      data.submitted = !data.submitted;
-
-      // Prepare formData if needed, otherwise use data directly
-      // const formData = new FormData();
-      // Object.keys(data).forEach(key => formData.append(key, data[key]));
-
-      // Submit the updated data
-      const putResponse = await axiosInstance.put(
+      await axiosInstance.put(
         `planApp/plan-document/${id}/`,
-        data,
+        { submitted: true },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -725,14 +701,14 @@ function Summary() {
           stepData.description
         );
 
-        if (Array.isArray(stepData.files)) {
-          stepData.files.forEach((file, fileIndex) => {
+        Array.from(stepData.files || [])
+          .filter((file) => file instanceof File)
+          .forEach((file, fileIndex) => {
             formData.append(
               `plan_narrations[${stepIndex}]Plan_photos[${fileIndex}]photos`,
               file
             );
           });
-        }
 
         if (Array.isArray(stepData.accordions)) {
           stepData.accordions.forEach((accordion, index) => {

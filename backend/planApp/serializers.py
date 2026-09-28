@@ -236,14 +236,45 @@ class PlanDocumentSerializer(serializers.ModelSerializer):
         instance.save()
 
         if plan_narrations_data:
+            existing_photos_by_section = {}
+            existing_narrations = instance.plan_narrations.prefetch_related(
+                'Plan_photos', 'subtitles__Plan_photos'
+            )
+            for existing_narration in existing_narrations:
+                existing_photos_by_section[existing_narration.section_type] = {
+                    'narration': list(
+                        existing_narration.Plan_photos.values_list('photos', flat=True)
+                    ),
+                    'subtitles': [
+                        list(subtitle.Plan_photos.values_list('photos', flat=True))
+                        for subtitle in existing_narration.subtitles.all()
+                    ],
+                }
+
             instance.plan_narrations.all().delete()
             for plan_narration_data in plan_narrations_data:
                 subtitles_data = plan_narration_data.pop('subtitles', [])
                 photos_data = plan_narration_data.pop('Plan_photos', [])
+                existing_photos = existing_photos_by_section.get(
+                    plan_narration_data.get('section_type'), {}
+                )
                 plan_narration = PlanNarration.objects.create(plan_document=instance, **plan_narration_data)
-                for subtitle_data in subtitles_data:
+                for existing_photo in existing_photos.get('narration', []):
+                    if existing_photo:
+                        Planphotos.objects.create(
+                            plan_narration=plan_narration,
+                            photos=existing_photo,
+                        )
+                for subtitle_index, subtitle_data in enumerate(subtitles_data):
                     photos_data_for_subtitle = subtitle_data.pop('Plan_photos', [])
                     subtitle = Subtitle.objects.create(plan_narration=plan_narration, **subtitle_data)
+                    if subtitle_index < len(existing_photos.get('subtitles', [])):
+                        for existing_photo in existing_photos['subtitles'][subtitle_index]:
+                            if existing_photo:
+                                Planphotos.objects.create(
+                                    subtitle=subtitle,
+                                    photos=existing_photo,
+                                )
                     for photo_data in photos_data_for_subtitle:
                         Planphotos.objects.create(subtitle=subtitle, **photo_data)
                 for photo_data in photos_data:
